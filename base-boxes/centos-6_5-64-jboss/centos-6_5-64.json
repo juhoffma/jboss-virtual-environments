@@ -1,0 +1,70 @@
+{
+   "post-processors": [
+      {
+         "output": "centos-6.5-64-jboss.box", 
+         "type": "vagrant"
+      }
+   ], 
+   "builders": [
+      {
+         "vm_name": "centos-6.5-64-jboss", 
+         "iso_url": "http://nervion.us.es/centos/6.5/isos/x86_64/CentOS-6.5-x86_64-minimal.iso", 
+         "disk_size": 40000, 
+         "guest_os_type": "RedHat_64", 
+         "iso_checksum": "f21a71e8e31df73297bdd1ccd4a64a36831284bd", 
+         "boot_wait": "10s", 
+         "http_directory": "http", 
+         "iso_checksum_type": "sha1", 
+         "headless": false, 
+         "shutdown_command": "shutdown -P now", 
+         "ssh_password": "root", 
+         "ssh_username": "root", 
+         "vboxmanage": [
+            [
+               "modifyvm", 
+               "{{.Name}}", 
+               "--memory", 
+               "2048"
+            ], 
+            [
+               "modifyvm", 
+               "{{.Name}}", 
+               "--cpus", 
+               "2"
+            ]
+         ], 
+         "boot_command": [
+            "<esc>", 
+            "<wait>linux ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/anaconda-ks.cfg<enter>"
+         ], 
+         "type": "virtualbox-iso", 
+         "ssh_wait_timeout": "10m"
+      }
+   ], 
+   "provisioners": [
+      {
+         "override": {
+            "virtualbox-iso": {
+               "scripts": [
+                  "../scripts/base.sh", 
+                  "../scripts/install-development-packages.sh", 
+                  "../scripts/enable-vagrant-user.sh", 
+                  "../scripts/enable-jboss-user.sh", 
+                  "../scripts/install-latest-puppet-x86_64.sh", 
+                  "../scripts/clean-empty-space.sh"
+               ]
+            }
+         }, 
+         "type": "shell", 
+         "scripts": [
+            "../scripts/base.sh", 
+            "../scripts/install-development-packages.sh", 
+            "../scripts/enable-vagrant-user.sh", 
+            "../scripts/enable-jboss-user.sh", 
+            "../scripts/install-latest-puppet-x86_64.sh", 
+            "../scripts/clean-empty-space.sh"
+         ]
+      }
+   ]
+}
+
