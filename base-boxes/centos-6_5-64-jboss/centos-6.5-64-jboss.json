@@ -35,7 +35,7 @@
          ], 
          "boot_command": [
             "<esc>", 
-            "<wait>linux ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/anaconda-ks.cfg<enter>"
+            "<wait>linux ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks-minimal.cfg<enter>"
          ], 
          "type": "virtualbox-iso", 
          "ssh_wait_timeout": "10m"
@@ -47,6 +47,7 @@
             "virtualbox-iso": {
                "scripts": [
                   "../scripts/base.sh", 
+                  "../scripts/install-desktop-packages.sh", 
                   "../scripts/install-additional-packages.sh", 
                   "../scripts/install-development-packages.sh", 
                   "../scripts/install-java-packages.sh", 
@@ -61,6 +62,7 @@
          "type": "shell", 
          "scripts": [
             "../scripts/base.sh", 
+            "../scripts/install-desktop-packages.sh", 
             "../scripts/install-additional-packages.sh", 
             "../scripts/install-development-packages.sh", 
             "../scripts/install-java-packages.sh", 
