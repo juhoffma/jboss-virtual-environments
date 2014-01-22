@@ -11,10 +11,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box = "centos-6.5-64-jboss"
   config.vm.box_url = "NONE" 
-  config.vm.network :forwarded_port, guest: 9990, host: 9990
-  config.vm.network :forwarded_port, guest: 9999, host: 9999
-  config.vm.network :forwarded_port, guest: 8080, host: 8080
-  config.vm.network :private_network, ip: "10.10.2.10"
+#  config.vm.network :forwarded_port, guest: 9990, host: 9990
+#  config.vm.network :forwarded_port, guest: 9999, host: 9999
+#  config.vm.network :forwarded_port, guest: 8080, host: 8080
+  config.vm.network :private_network, ip: "10.10.3.11"  # sy1
+  config.vm.network :private_network, ip: "10.10.3.21"  # rtgov1 
+  config.vm.network :private_network, ip: "10.10.3.31"  # dtgov1
+  config.vm.network :private_network, ip: "10.10.3.41"  # sramp1
+  config.vm.network :private_network, ip: "10.10.3.51"  # db1
   # config.vm.network :public_network
   config.ssh.username = "jboss"
   config.ssh.forward_agent = true
@@ -23,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  
   config.vm.provider :virtualbox do |vb|
      # vb.gui = true
-     vb.customize ["modifyvm", :id, "--name", "jboss-fsw-6-gettingstarted", "--memory", "6144"]
+     vb.customize ["modifyvm", :id, "--name", "jboss-fsw-demo", "--memory", "6144"]
   end
 
   # Enable provisioning with Puppet stand alone.  Puppet manifests
@@ -44,9 +48,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # #               Managed by Puppet.\n"
   # # }
   #
-  # config.vm.provision :puppet do |puppet|
-  #   puppet.manifests_path = "manifests"
-  #   puppet.manifest_file  = "site.pp"
-  # end
+  config.vm.provision :puppet do |puppet|
+     puppet.manifests_path = "manifests"
+     puppet.manifest_file  = "site.pp"
+  end
 
 end
