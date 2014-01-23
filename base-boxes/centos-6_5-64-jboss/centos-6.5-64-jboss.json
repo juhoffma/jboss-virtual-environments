@@ -55,6 +55,7 @@
                   "../scripts/enable-vagrant-user.sh", 
                   "../scripts/enable-jboss-user.sh", 
                   "../scripts/install-latest-puppet-x86_64.sh", 
+                  "../scripts/clean-udev.sh",
                   "../scripts/clean-empty-space.sh"
                ]
             }
@@ -69,6 +70,7 @@
             "../scripts/enable-vagrant-user.sh", 
             "../scripts/enable-jboss-user.sh", 
             "../scripts/install-latest-puppet-x86_64.sh", 
+            "../scripts/clean-udev.sh",
             "../scripts/clean-empty-space.sh"
          ]
       }
