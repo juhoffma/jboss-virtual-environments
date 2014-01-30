@@ -1,0 +1,53 @@
+{
+   "builders": [
+      {
+         "vm_name": "rhel_6.4_64", 
+         "iso_url": "/tmp/rhel-server-6.5-x86_64-dvd.iso", 
+         "guest_os_type": "RedHat_64", 
+         "disk_size": 40960,
+         "iso_checksum": "a51b90f3dd4585781293ea08adde60eeb9cfa94670943bd99e9c07f13a259539", 
+         "boot_wait": "10s", 
+         "http_directory": "http", 
+         "iso_checksum_type": "sha256", 
+         "headless": false, 
+         "shutdown_command": "shutdown -P now", 
+         "ssh_password": "root", 
+         "ssh_username": "root", 
+         "vboxmanage": [
+            [
+               "modifyvm", 
+               "{{.Name}}", 
+               "--memory", 
+               "512"
+            ], 
+            [
+               "modifyvm", 
+               "{{.Name}}", 
+               "--cpus", 
+               "1"
+            ]
+         ], 
+         "boot_command": [
+            "<esc>", 
+            "<wait>linux ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/anaconda-ks.cfg<enter>"
+         ], 
+         "type": "virtualbox-iso", 
+         "ssh_wait_timeout": "10m"
+      }
+   ], 
+   "provisioners": [
+      {
+         "type": "shell", 
+         "scripts": [
+            "../scripts/base.sh", 
+            "../scripts/install-development-packages.sh", 
+            "../scripts/install-java-packages.sh", 
+            "../scripts/install-virtualbox-guest-additions.sh",
+            "../scripts/enable-jboss-user.sh", 
+            "../scripts/clean-udev.sh",
+            "../scripts/clean-empty-space.sh"
+         ]
+      }
+   ]
+}
+
