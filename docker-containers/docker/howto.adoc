@@ -1,0 +1,97 @@
+= DOCKER
+Jorge Morales <jmorales@redhat.com>
+19/12/2013
+:toc:
+:imagesdir: ./images
+:source-highlighter: prettify
+
+
+== Working with containers
+
+=== Create a docker container from an image
+----
+ docker run -i -name wildlfy -t jorgemoralespou/wildfly /bin/bash
+ docker run -p 127.0.0.1:9990:9990 -p 127.0.0.1:2222:22 -t -i jorgemoralespou/eap62 /bin/bash
+# docker run -d 
+----
+
+=== Create a docker container from a dockerfile
+----
+ docker build -t jorgemoralespou/wildfly .
+ docker build -t jorgemoralespou/wildfly:v1 .
+ docker build .
+ docker build -rm .                              (Elimina todos los contenedores intermedios)
+----
+
+=== Stop a cotainer
+----
+ docker stop
+----
+
+=== Start a stopped container
+----
+ docker start
+----
+
+=== Kill a container
+----
+ docker kill
+----
+
+=== Listing running container
+----
+ docker ps
+ docker ps -a            (List all containers)
+----
+
+Attach to a running container
+----
+ docker attach <IMAGE_ID>
+----
+
+== Working with Docker index
+
+=== Searching for images
+----
+ docker search centos
+ docker search <keyword>
+----
+
+
+=== Pulling down images
+----
+ docker pull jorgemoralespou/wildfly
+ docker pull centos
+ docker pull ubuntu
+----
+
+=== Commiting an image
+----
+ docker commit <IMAGE_ID> <IMAGE_NAME>
+ docker commit 539c0211cd76 centos 
+ docker commit -m="A new custom image" -author="Jorge" -run='{ "PortSpecs": ["22", "80"], "Env": ["HTTP_PORT=8080"] }' 4aab3ce3cb76 jamtur01/apache2
+----
+
+
+=== Pushing up images
+----
+ docker push jorgemoralespou/wildfly
+----
+
+=== Loging-in to index.docker.io
+----
+ docker login
+----
+
+=== Deleting an image
+----
+ docker rmi jamtur01/apache2
+----
+
+
+=== Listing images
+----
+ docker images
+----
+
+// vim: set syntax=asciidoc:
