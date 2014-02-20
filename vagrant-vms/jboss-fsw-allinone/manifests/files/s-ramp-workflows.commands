@@ -1,0 +1,3 @@
+s-ramp:connect http://localhost:8080/s-ramp-server admin admin123!
+s-ramp:upload  /vagrant/manifests/files/dtgov-workflows-1.0.1.Final-redhat-8.jar KieJarArchive
+quit

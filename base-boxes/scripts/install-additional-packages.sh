@@ -1,3 +1,3 @@
 # Install development packages
-yum -y install tree tcpdump wget unzip zip
+yum -y install tree tcpdump wget unzip zip expect
 

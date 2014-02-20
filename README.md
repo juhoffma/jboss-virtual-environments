@@ -17,10 +17,10 @@ cd jboss-virtual-environments
 
 ##### Instructions in following README.md files
 
-* base-boxes/README.md
-* vagrant-vms/README.md
+* [base boxes](base-boxes/README.md): These repositories let you create base boxes used for vagrant vms.
+* [Vagrant VMs](vagrant-vms/README.md): These are prebuilt vagrant VMs to demo some [JBoss] MDW functionalities.
 
 
 [packer]:http://packer.io/
 [vagrant]:http://www.vagrantup.com
-    
+[JBoss]:http://www.jboss.org/products
