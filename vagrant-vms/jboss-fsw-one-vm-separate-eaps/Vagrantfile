@@ -1,0 +1,54 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.require_version ">=1.4.0"
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+#  config.vm.box_url = "NOT_UPLOADED_ANYWHERE"
+
+  config.vm.box = "centos-6.5-64-jboss"
+  config.vm.box_url = "https://www.dropbox.com/s/l3lq05q9m8mbzlr/centos-6.5-64-jboss.box"
+#  config.vm.network :forwarded_port, guest: 9990, host: 9990
+#  config.vm.network :forwarded_port, guest: 9999, host: 9999
+#  config.vm.network :forwarded_port, guest: 8080, host: 8080
+  config.vm.network :private_network, ip: "10.11.2.11"  
+  config.vm.network :private_network, ip: "10.11.2.12"  
+  config.vm.network :private_network, ip: "10.11.2.13"  
+  # config.vm.network :public_network
+  config.ssh.username = "jboss"
+  config.ssh.forward_agent = true
+  config.ssh.forward_x11 = true
+ 
+  config.vm.provider :virtualbox do |vb|
+     # vb.gui = true
+     vb.customize ["modifyvm", :id, "--name", "jboss-fsw-one-vm-separate-eaps", "--memory", "4096"]
+  end
+
+  #
+  # Right now installs:
+  #   hostnames
+  #   users and groups
+  #   additional packages
+  #   copy files to /tmp
+  #
+  config.vm.provision :puppet do |puppet|
+     puppet.manifests_path = "manifests"
+     puppet.manifest_file  = "site.pp"
+  end
+
+  config.vm.provision :shell do |shell|
+     shell.path = "manifests/setup-sy.sh"
+  end
+
+  config.vm.provision :shell do |shell|
+     shell.path = "manifests/setup-rtgov.sh"
+  end
+
+  config.vm.provision :shell do |shell|
+     shell.path = "manifests/setup-dtgov.sh"
+  end
+
+end
