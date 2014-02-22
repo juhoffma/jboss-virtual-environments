@@ -66,7 +66,17 @@ fi
 #
 # Change deployment targets for governance
 #
-sed -i -e 's/\/tmp\/.*\/jbossas7/\/home\/jboss\/fsw/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov.properties
+sed -i -e 's/\/tmp\/.*\/jbossas7/\/home\/jboss\/sy/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov.properties
+
+#
+# Fix hostnames
+#
+sed -i -e 's/localhost/dtgov/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov.properties
+sed -i -e 's/localhost/dtgov/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov-ui.properties
+sed -i -e 's/localhost/dtgov/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/sramp.properties
+sed -i -e 's/localhost/dtgov/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov-ui.properties
+sed -i -e 's/localhost/rtgov/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/overlord-rtgov.properties
+sed -i -e 's/localhost/rtgov/g' /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/configuration/gadget-server.properties
 
 #
 # Install init script and register as a service
@@ -95,8 +105,8 @@ service ${EAP_INSTANCE_DIRNAME} start
 #
 # Wait until the server is started
 #
-sleep 10
-{ tail -n +1 -f /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/log/server.log & } | sed -n '/JBoss Red Hat JBoss Fuse Service Works 6/q'
+sleep 5
+timeout 120 grep -q 'started in' <(tail -f /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/log/server.log)
 
 #
 # Install governance workflows

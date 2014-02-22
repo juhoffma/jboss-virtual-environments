@@ -44,6 +44,7 @@ if [ -z "$JBOSS_CONF" ]; then
   JBOSS_CONF="/etc/jboss-as/${SUBSYS}.conf"
 fi
 
+[ -r "$JBOSS_CONF" ] && . "${JBOSS_CONF}"
 
 # Set defaults.
 

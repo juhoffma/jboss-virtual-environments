@@ -100,8 +100,8 @@ service standalone start
 #
 # Wait until the server is started
 #
-sleep 10
-{ tail -n +1 -f /home/jboss/${SY}/standalone/log/server.log & } | sed -n '/JBoss Red Hat JBoss Fuse Service Works 6/q'
+sleep 5
+timeout 150 grep -q 'started in' <(tail -f /home/jboss/${EAP_INSTANCE_DIRNAME}/standalone/log/server.log)
 
 
 #
