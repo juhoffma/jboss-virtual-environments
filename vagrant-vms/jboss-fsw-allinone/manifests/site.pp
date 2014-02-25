@@ -24,8 +24,8 @@ file { "installer":
     source  => "puppet:////vagrant/manifests/files/jboss-fsw-installer-6.0.0.GA-redhat-4.jar"
 }
 
-file { "jbds-installer":
-    path    => "/tmp/jbdevstudio-installer.jar",
-    ensure  => file,
-    source  => "puppet:////vagrant/manifests/files/jbdevstudio-product-universal-7.1.0.GA-v20131208-0703-B592.jar"
-}
+#file { "jbds-installer":
+#    path    => "/tmp/jbdevstudio-installer.jar",
+#    ensure  => file,
+#    source  => "puppet:////vagrant/manifests/files/jbdevstudio-product-universal-7.1.0.GA-v20131208-0703-B592.jar"
+#}

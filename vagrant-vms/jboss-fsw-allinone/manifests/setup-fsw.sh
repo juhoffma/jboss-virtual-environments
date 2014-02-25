@@ -43,9 +43,8 @@ echo "Renaming the EAP dir to honour name of SwithYard install"
 mv /home/jboss/jboss-eap-6.1 /home/jboss/${SY}
 
 echo "Binding JBoss EAP to ${SY} ip address"
-`cat  /home/jboss/${SY}/bin/standalone.conf | grep "jboss.bind.address=" | grep -v "#"`
-RET=$?   
-if [ $RET != 0 ]
+RET=`cat  /home/jboss/${SY}/bin/standalone.conf | grep "jboss.bind.address=" | grep -v "#"`
+if [[ "$RET" == "" ]]
 then
    echo "JAVA_OPTS=\"\$JAVA_OPTS -Djboss.bind.address=0.0.0.0 -Djboss.bind.address.management=0.0.0.0 -Djboss.bind.address.unsecure=0.0.0.0 \"" >> /home/jboss/${SY}/bin/standalone.conf
 fi
@@ -110,12 +109,13 @@ sleep 10
 /home/jboss/${SY}/bin/s-ramp.sh -f /vagrant/manifests/files/s-ramp-workflows.commands
 
 
-JBDS_INSTALLER=/tmp/jbdevstudio-installer.jar
+JBDS_INSTALLER=/vagrant/manifests/files/jbdevstudio-product-universal-7.1.0.GA-v20131208-0703-B592.jar
 #
 # Install JBDS & Integration Stack plugins
 #
 if [ -e ${JBDS_INSTALLER} ]
 then
+   echo "Installing JBDS and Integration Stack plugins"
    # Install JBDS
    java -jar${JBDS_INSTALLER} /vagrant/manifests/files/install-jbds.xml 
    # Install Integration Stack
