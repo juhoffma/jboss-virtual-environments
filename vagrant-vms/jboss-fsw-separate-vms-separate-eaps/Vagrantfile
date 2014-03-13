@@ -1,0 +1,64 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.require_version ">=1.4.0"
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+#  config.vm.box_url = "NOT_UPLOADED_ANYWHERE"
+   config.vm.box = "centos-6.5-64-jboss"
+   config.vm.box_url = "https://www.dropbox.com/s/l3lq05q9m8mbzlr/centos-6.5-64-jboss.box"
+   config.ssh.username = "jboss"
+   config.ssh.forward_agent = true
+   config.ssh.forward_x11 = true
+
+   config.vm.define "switchyard", primary: true do |switchyard|
+      switchyard.vm.network :private_network, ip: "10.11.4.11"  
+      switchyard.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "switchyard-fswSvmsSeaps", "--memory", "2096"]
+      end
+   
+      switchyard.vm.provision :puppet do |puppet|
+         puppet.manifests_path = "manifests"
+         puppet.manifest_file  = "site.pp"
+      end
+      switchyard.vm.provision :shell do |shell|
+         shell.path = "manifests/setup-sy.sh"
+      end
+   end
+   
+   config.vm.define "rtgov" do |rtgov|
+      rtgov.vm.network :private_network, ip: "10.11.4.12"  
+      rtgov.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "rtgov-fswSvmsSeaps", "--memory", "2096"]
+      end
+   
+      rtgov.vm.provision :puppet do |puppet|
+         puppet.manifests_path = "manifests"
+         puppet.manifest_file  = "site.pp"
+      end
+      rtgov.vm.provision :shell do |shell|
+         shell.path = "manifests/setup-rtgov.sh"
+      end
+   end
+   
+   config.vm.define "dtgov" do |dtgov|
+      dtgov.vm.network :private_network, ip: "10.11.4.13"  
+      dtgov.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "dtgov-fswSvmsSeaps", "--memory", "2096"]
+      end
+   
+      dtgov.vm.provision :puppet do |puppet|
+         puppet.manifests_path = "manifests"
+         puppet.manifest_file  = "site.pp"
+      end
+      dtgov.vm.provision :shell do |shell|
+         shell.path = "manifests/setup-dtgov.sh"
+      end
+   end      
+end
