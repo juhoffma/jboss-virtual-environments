@@ -76,7 +76,6 @@ fi
 
 JBOSS_SCRIPT=$JBOSS_HOME/bin/standalone.sh
 
-prog="jboss-as-${SUBSYS}"
 
 CMD_PREFIX=''
 
@@ -89,11 +88,11 @@ if [ ! -z "$JBOSS_USER" ]; then
 fi
 
 start() {
-  echo -n "Starting $prog: "
+  echo -n "Starting $SUBSYS: "
   if [ -f $JBOSS_PIDFILE ]; then
     read ppid < $JBOSS_PIDFILE
     if [ `ps --pid $ppid 2> /dev/null | grep -c $ppid 2> /dev/null` -eq '1' ]; then
-      echo -n "$prog is already running"
+      echo -n "$SUBSYS is already running"
       failure
       echo
       return 1 
@@ -137,7 +136,7 @@ start() {
 }
 
 stop() {
-  echo -n $"Stopping $prog: "
+  echo -n $"Stopping $SUBSYS: "
   count=0;
 
   if [ -f $JBOSS_PIDFILE ]; then
@@ -166,14 +165,14 @@ status() {
   if [ -f $JBOSS_PIDFILE ]; then
     read ppid < $JBOSS_PIDFILE
     if [ `ps --pid $ppid 2> /dev/null | grep -c $ppid 2> /dev/null` -eq '1' ]; then
-      echo "$prog is running (pid $ppid)"
+      echo "$SUBSYS is running (pid $ppid)"
       return 0
     else
-      echo "$prog dead but pid file exists"
+      echo "$SUBSYS dead but pid file exists"
       return 1
     fi
   fi
-  echo "$prog is not running"
+  echo "$SUBSYS is not running"
   return 3
 }
 

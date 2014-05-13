@@ -58,13 +58,13 @@ function check_pre_req {
 #   $1: path
 #   $2: user
 function install_switchyard {
-   local _instance=$_GLOBAL_INSTANCE
+   local _instance_name=$_GLOBAL_INSTANCE
    local _install_path=$_GLOBAL_DIR
    local _user=$_GLOBAL_USER
  
 
    # Validate that the target installation does not already exist
-   if [ -d ${_install_path}/jboss-eap-6.1 ] || [ -d ${_install_path}/${_instance} ]
+   if [ -d ${_install_path}/jboss-eap-6.1 ] || [ -d ${_install_path}/${_instance_name} ]
    then
       echo_nook "Target directory already exists. Please remove it before installing again."
       exit 250
@@ -87,19 +87,19 @@ function install_switchyard {
    #
    # Fix hostnames
    #
-   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov.properties 2> /dev/null
-   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov-ui.properties 2> /dev/null
-   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/${EAP_INSTANCE_DIRNAME}/standalone/configuration/sramp.properties 2> /dev/null
-   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/${EAP_INSTANCE_DIRNAME}/standalone/configuration/dtgov-ui.properties 2> /dev/null
-   # sed -i -e 's/localhost/rtgov/g' ${_install_path}/${EAP_INSTANCE_DIRNAME}/standalone/configuration/overlord-rtgov.properties 2> /dev/null
-   # sed -i -e 's/localhost/rtgov/g' ${_install_path}/${EAP_INSTANCE_DIRNAME}/standalone/configuration/gadget-server.properties 2> /dev/null
+   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/jboss-eap-6.1/standalone/configuration/dtgov.properties 2> /dev/null
+   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/jboss-eap-6.1/standalone/configuration/dtgov-ui.properties 2> /dev/null
+   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/jboss-eap-6.1/standalone/configuration/sramp.properties 2> /dev/null
+   # sed -i -e 's/localhost/dtgov/g' ${_install_path}/jboss-eap-6.1/standalone/configuration/dtgov-ui.properties 2> /dev/null
+   # sed -i -e 's/localhost/rtgov/g' ${_install_path}/jboss-eap-6.1/standalone/configuration/overlord-rtgov.properties 2> /dev/null
+   # sed -i -e 's/localhost/rtgov/g' ${_install_path}/jboss-eap-6.1/standalone/configuration/gadget-server.properties 2> /dev/null
 
-   echo_info "Renaming the EAP dir to ${_instance} to honour name of ${PRODUCT_NAME} install"
-   mv ${_install_path}/jboss-eap-6.1 ${_install_path}/${_instance}
+   echo_info "Renaming the EAP dir to ${_instance_name} to honour name of ${PRODUCT_NAME} install"
+   mv ${_install_path}/jboss-eap-6.1 ${_install_path}/${_instance_name}
   
    # After everything is done, fix owner
-   echo_info "Setting permissions to ${_install_path}/${_instance} for user ${_user}"
-   chown -R $_user:$_user ${_install_path}/${_instance}
+   echo_info "Setting permissions to ${_install_path}/${_instance_name} for user ${_user}"
+   chown -R $_user:$_user ${_install_path}/${_instance_name}
    
    # Delete installation files
    rm ${_install_path}/InstallationLog.txt
@@ -108,7 +108,7 @@ function install_switchyard {
    set_jboss_bind_address "standalone"
       
    # As a return it will output the install path
-   echo "${_install_path}/${INSTANCE}"
+   echo "${_install_path}/${_instance_name}"
 }
 
 
@@ -120,17 +120,17 @@ function install_switchyard {
 function set_jboss_bind_address {
    local _config=$1
    local _install_dir=$_GLOBAL_DIR
-   local _instance=$_GLOBAL_INSTANCE
+   local _instance_name=$_GLOBAL_INSTANCE
    local _bind_addr=$_GLOBAL_BIND
   
 
-   echo_info "Set bind address for $_config configuration in $_install_dir/$_instance"
+   echo_info "Set bind address for $_config configuration in $_install_dir/$_instance_name"
 
-   `cat  $_install_dir/$_instance/bin/${_config}.conf | grep "jboss.bind.address=" | grep -v "#"`
+   `cat  $_install_dir/$_instance_name/bin/${_config}.conf | grep "jboss.bind.address=" | grep -v "#"`
    RET=$?   
    if [ $RET != 0 ]
    then
-      echo "JAVA_OPTS=\"\$JAVA_OPTS -Djboss.bind.address=${_bind_addr} -Djboss.bind.address.management=${_bind_addr} -Djboss.bind.address.unsecure=${_bind_addr} \"" >> ${_install_dir}/${_instance}/bin/${_config}.conf
+      echo "JAVA_OPTS=\"\$JAVA_OPTS -Djboss.bind.address=${_bind_addr} -Djboss.bind.address.management=${_bind_addr} -Djboss.bind.address.unsecure=${_bind_addr} \"" >> ${_install_dir}/${_instance_name}/bin/${_config}.conf
    fi
 }
 
@@ -156,8 +156,8 @@ function register_service {
    fi
    
    # Sed configuration
-   sed -i -e "r/JBOSS_HOME=.*/JBOSS_HOME=$(echo ${_install_dir}/${_instance} | sed -e 's/[\/&]/\\&/g')/g" /etc/jboss-as/${_instance_name}.conf
-   sed -i -e "r/JBOSS_USER=.*/JBOSS_USER=$(echo ${_user} | sed -e 's/[\/&]/\\&/g')/g" /etc/jboss-as/${_instance_name}.conf
+   sed -i -e "s/JBOSS_HOME=.*/JBOSS_HOME=$(echo ${_install_dir}/${_instance_name} | sed -e 's/[\/&]/\\&/g')/g" /etc/jboss-as/${_instance_name}.conf
+   sed -i -e "s/JBOSS_USER=.*/JBOSS_USER=$(echo ${_user} | sed -e 's/[\/&]/\\&/g')/g" /etc/jboss-as/${_instance_name}.conf
 }
 
 
