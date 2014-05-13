@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+
+# TODO: Extract this functions to common script
+SETCOLOR_SUCCESS="echo -en \\033[1;32m"
+SETCOLOR_INFO="echo -en \\033[1;36m"
+SETCOLOR_FAILURE="echo -en \\033[1;31m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+echo_ok() {
+  $SETCOLOR_SUCCESS
+  echo -n $1
+  $SETCOLOR_NORMAL
+  echo ""
+  return 0
+}
+
+echo_info() {
+  $SETCOLOR_INFO
+  echo -n $1
+  $SETCOLOR_NORMAL
+  echo ""
+  return 0
+}
+
+echo_nook() {
+  $SETCOLOR_FAILURE
+  echo -n $1
+  $SETCOLOR_NORMAL
+  echo ""
+  return 0
+}
+
+
+function fail_if_not_root {
+   echo "== Checking for root privileges"
+   if [ "$UID" -ne 0 ]
+   then
+	   echo_nook "To run this script you need root permissions (either root or sudo)"
+	   exit
+	else
+	   echo_ok "OK"   
+   fi 
+}
+

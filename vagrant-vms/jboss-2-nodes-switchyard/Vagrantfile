@@ -1,0 +1,72 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.require_version ">=1.6.1"
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+   config.vm.box = "misheska/centos65"
+#   config.ssh.username = "jboss"
+   config.ssh.forward_agent = true
+   config.ssh.forward_x11 = true
+
+   config.vm.define "switchyard1", primary: true do |node1|
+      # node1.vm.network :forwarded_port, :guest=> 9990, :host=> 9990
+      # node1.vm.network :forwarded_port, :guest=> 9999, :host=> 9999
+      # node1.vm.network :forwarded_port, :guest=> 8080, :host=> 8080
+      node1.vm.network :private_network, ip: "10.15.1.11", virtualbox__intnet: "mynetwork"
+
+      # Public network should be configured to be able to access YUM repos to install things
+      #  node1.vm.network :public_network
+      #  node1.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+
+      node1.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "sy-node1", "--memory", "4096"]
+      end
+   
+      node1.vm.provision :shell do |shell|
+         shell.path = "manifests/setup-switchyard.sh"
+         shell.args = ["-i", "switchyard1", "-b", "0.0.0.0", "-u", "jboss", "-d", "/opt/data"]
+      end
+   end
+   
+   config.vm.define "switchyard2" do |node2|
+      # node2.vm.network :forwarded_port, :guest=> 9990, :host=> 9990
+      # node2.vm.network :forwarded_port, :guest=> 9999, :host=> 9999
+      # node2.vm.network :forwarded_port, :guest=> 8080, :host=> 8080
+      node2.vm.network :private_network, ip: "10.15.1.12", virtualbox__intnet: "mynetwork"
+
+      # Public network should be configured to be able to access YUM repos to install things
+      #  node2.vm.network :public_network
+      #  node2.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+
+      node2.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "sy-node2", "--memory", "4096"]
+      end
+   
+      node2.vm.provision :shell do |shell|
+         shell.inline = "/vagrant/manifests/setup-switchyard.sh"
+         shell.args = ["-i", "switchyard2", "-b", "0.0.0.0", "-u", "jboss", "-d", "/opt/data"]
+      end
+   end
+   
+   # Every dependent file should be in files, so it will get linked
+   # Shell provisioners run from /tmp (It copies the script)
+   # config.vm.provision "file",  source: "manifests/common_functions", destination: "/tmp/common_functions"
+   # config.vm.provision "shell", inline: "ln -s /vagrant/manifests/files  /tmp/files"
+
+   config.vm.provision :shell do |shell|
+      shell.inline = "/vagrant/manifests/setup-pre_req.sh"
+      shell.args = ["-u", "jboss", "-h", "switchyard1:10.15.1.11", "-h", "switchyard2:10.15.1.12"]
+   end
+#  config.vm.provision :shell do |shell|
+#     shell.inline = "/vagrant/manifests/setup-switchyard.sh"
+#     shell.args = ["-i", "switchyard1", "-b", "0.0.0.0", "-u", "jboss", "-d", "/opt/data"]
+#  end
+
+
+end
