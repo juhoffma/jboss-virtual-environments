@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo "$DIR"
 # Import common functions
 if [ ! -f ${DIR}/common_functions ]
 then
@@ -10,6 +9,7 @@ then
 else
    . ${DIR}/common_functions
 fi
+
 function sedeasy {
   echo "sed -i \"s/$(echo $1 | sed -e 's/\([[\/.*]\|\]\)/\\&/g')/$(echo $2 | sed -e 's/[\/&]/\\&/g')/g\" $3"
 }
@@ -17,7 +17,7 @@ function sedeasy {
 : ${FSWJAR:="jboss-fsw-installer-6.0.0.GA-redhat-4.jar"}
 : ${PRODUCT_NAME:="SwitchYard"}
 : ${PRODUCT_SCRIPTNAME:="sy"}
-: ${FILES_DIR:="./files"}
+: ${FILES_DIR:="/vagrant/manifests/files"}
 : ${INSTALLER:="${FILES_DIR}/${FSWJAR}"}
 
 : ${DEFAULT_USER:="jboss"}
@@ -27,7 +27,7 @@ function sedeasy {
 usage() {
    # TODO: Explain how it works
 	echo "Usage: "
-	echo "       $0 [-?] -i instance_name [-b bind_address] [-u user] [-i install_dir}"
+	echo "       $0 -i instance_name [-b bind_address] [-u user] [-i install_dir] [-?]"
 	echo ""
 	echo ""
 	exit 250
@@ -37,6 +37,11 @@ usage() {
 # Checking pre requisites for installing SwitchYard
 #
 function check_pre_req {
+   if [ ! -d $FILES_DIR ]
+   then
+	   echo_nook "$FILES_DIR does not exists."
+	   exit 255
+   fi
    if [ -f $INSTALLER ]
    then
 	   echo_info "File $INSTALLER exists"
@@ -191,6 +196,9 @@ function parse_options() {
          ;;
        d)
          _GLOBAL_DIR=$OPTARG
+         ;;
+       ?)
+         usage
          ;;
        \?)
          echo "Invalid option: -$OPTARG" >&2

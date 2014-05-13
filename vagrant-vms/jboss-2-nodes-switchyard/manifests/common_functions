@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 
-# TODO: Extract this functions to common script
 SETCOLOR_SUCCESS="echo -en \\033[1;32m"
 SETCOLOR_INFO="echo -en \\033[1;36m"
 SETCOLOR_FAILURE="echo -en \\033[1;31m"
@@ -33,13 +32,33 @@ echo_nook() {
 
 
 function fail_if_not_root {
-   echo "== Checking for root privileges"
    if [ "$UID" -ne 0 ]
    then
 	   echo_nook "To run this script you need root permissions (either root or sudo)"
 	   exit
-	else
-	   echo_ok "OK"   
    fi 
 }
+
+function add_user {
+   local _user=$1
+   
+   echo "Creating user $_user"
+   adduser -m $_user
+   echo "$_user:$_user" | sudo chpasswd
+}
+
+function add_hostname {
+   local _hostname=$1
+   local _ip=$2
+   
+   echo "Adding $_hostname($_ip) to /etc/hosts"
+   _RET=$(cat /etc/hosts | grep "$_ip")
+   if [[ "$_RET" == "" ]]
+   then   
+      echo "$_ip    $_hostname" >> /etc/hosts
+      echo_ok "IP added"
+   else
+      echo_info "IP already in /etc/hosts ($_RET)"
+   fi   
+} 
 

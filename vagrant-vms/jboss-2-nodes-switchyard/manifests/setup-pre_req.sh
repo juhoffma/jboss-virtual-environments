@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo "$DIR"
 # Import common functions
 if [ ! -f ${DIR}/common_functions ]
 then
@@ -16,16 +15,25 @@ fi
 #
 #
 function install_additional_packages {
-   echo "== Installing additional packages (java, unzip,...)"
+   echo "Installing additional packages (java, unzip,...)"
    # TODO: Check for package being installed, otherwise execute yum and check for results. 
    yum -y install java-1.7.0-openjdk unzip
+}
+
+function usage {
+   # TODO: Explain how it works
+	echo "Usage: "
+	echo "       $0 [-u user] [-h hostname:ip] [-?]"
+	echo ""
+	echo ""
+	exit 250
 }
 
 #
 # Parses command line arguments for script and check required params
 #
 function parse_options() {
-   while getopts "u:h:" opt "$@"; do
+   while getopts "u:h:?" opt "$@"; do
      case $opt in
        u)
          add_user $OPTARG
@@ -34,6 +42,9 @@ function parse_options() {
          local _host=$OPTARG
          add_hostname ${_host%:*} ${_host##*:}
          ;;
+       ?) 
+         usage
+         ;;  
        \?)
          echo "Invalid option: -$OPTARG" >&2
          ;;

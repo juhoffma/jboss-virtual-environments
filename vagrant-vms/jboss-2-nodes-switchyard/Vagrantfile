@@ -1,6 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-Vagrant.require_version ">=1.6.1"
+Vagrant.require_version ">=1.6.2"
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
@@ -28,7 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
    
       node1.vm.provision :shell do |shell|
-         shell.path = "manifests/setup-switchyard.sh"
+         shell.inline = "/vagrant/manifests/setup-switchyard.sh $*"
          shell.args = ["-i", "switchyard1", "-b", "0.0.0.0", "-u", "jboss", "-d", "/opt/data"]
       end
    end
@@ -49,7 +49,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
    
       node2.vm.provision :shell do |shell|
-         shell.inline = "/vagrant/manifests/setup-switchyard.sh"
+         shell.inline = "/vagrant/manifests/setup-switchyard.sh $*"
          shell.args = ["-i", "switchyard2", "-b", "0.0.0.0", "-u", "jboss", "-d", "/opt/data"]
       end
    end
@@ -60,7 +60,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
    # config.vm.provision "shell", inline: "ln -s /vagrant/manifests/files  /tmp/files"
 
    config.vm.provision :shell do |shell|
-      shell.inline = "/vagrant/manifests/setup-pre_req.sh"
+      shell.inline = "/vagrant/manifests/setup-pre_req.sh $*"
       shell.args = ["-u", "jboss", "-h", "switchyard1:10.15.1.11", "-h", "switchyard2:10.15.1.12"]
    end
 #  config.vm.provision :shell do |shell|
