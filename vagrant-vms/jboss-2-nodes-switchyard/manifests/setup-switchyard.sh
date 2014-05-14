@@ -142,6 +142,7 @@ function set_jboss_bind_address {
 #   $1: user
 #   $2: instance_name
 function register_service {
+   local _install_dir=$_GLOBAL_DIR
    local _user=$_GLOBAL_USER
    local _instance_name=$_GLOBAL_INSTANCE
 
