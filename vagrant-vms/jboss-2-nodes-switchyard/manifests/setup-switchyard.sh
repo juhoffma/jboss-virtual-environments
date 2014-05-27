@@ -17,12 +17,13 @@ function sedeasy {
 : ${FSWJAR:="jboss-fsw-installer-6.0.0.GA-redhat-4.jar"}
 : ${PRODUCT_NAME:="SwitchYard"}
 : ${PRODUCT_SCRIPTNAME:="sy"}
-: ${FILES_DIR:="/vagrant/manifests/files"}
+: ${FILES_DIR:=${DIR}"/files"}
 : ${INSTALLER:="${FILES_DIR}/${FSWJAR}"}
 
 : ${DEFAULT_USER:="jboss"}
 : ${DEFAULT_BIND:="0.0.0.0"}
 : ${DEFAULT_DIR:="/opt"}
+: ${DEFAULT_ADMIN_PWD:="admin123!"}
 
 usage() {
    # TODO: Explain how it works
@@ -31,6 +32,20 @@ usage() {
 	echo ""
 	echo ""
 	exit 250
+}
+
+# Creates encoded password for management realm
+#
+# Arguments:
+#   $1: user
+#   $2: password
+function encrypt_admin_password { 
+   local _user=$_GLOBAL_ADMIN_USER
+   local _password=$_GLOBAL_ADMIN_PWD
+   
+   MI_CLASSPATH="${DIR}/files/encrypt/jboss-client.jar:${DIR}/files/encrypt/jbosssx-3.0.0.Final.jar:${DIR}/files/encrypt/:"
+
+   echo "$(java -cp $MI_CLASSPATH EncryptPassword $_user $_password)"
 }
 
 #
@@ -51,7 +66,6 @@ function check_pre_req {
    fi
 }
 
-
 # Installs switchyard binaries
 # 
 # Arguments:
@@ -61,7 +75,8 @@ function install_switchyard {
    local _instance_name=$_GLOBAL_INSTANCE
    local _install_path=$_GLOBAL_DIR
    local _user=$_GLOBAL_USER
- 
+   local _admin_user=$_GLOBAL_ADMIN_USER
+   local _admin_pwd=$_GLOBAL_ADMIN_PWD 
 
    # Validate that the target installation does not already exist
    if [ -d ${_install_path}/jboss-eap-6.1 ] || [ -d ${_install_path}/${_instance_name} ]
@@ -72,8 +87,15 @@ function install_switchyard {
       echo_info "${PRODUCT_NAME} will be installed in ${_install_path}"  
    fi
 
+   local _encrypted_admin=$(encrypt_admin_password)
+   echo "Password for admin encrypted ($_encrypted_admin)"
    # Before we install, we need to modify the install.xml to have the correct install path
    sed -i -e "s/<installpath>.*<\/installpath>/<installpath>$(echo ${_install_path} | sed -e 's/[\/&]/\\&/g')<\/installpath>/g" ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml
+   # If admin password is set, change it
+   sed -i -e "s/adminPassword\" value=\".*\"/adminPassword\" value=\"$(echo ${_encrypted_admin} | sed -e 's/[\/&]/\\&/g')\"/g" ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml
+   sed -i -e "s/password=.*/password=$(echo ${_admin_pwd} | sed -e 's/[\/&]/\\&/g')/g" ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml.variables
+   sed -i -e "s/storepass=.*/storepass=$(echo ${_admin_pwd} | sed -e 's/[\/&]/\\&/g')/g" ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml.variables
+   sed -i -e "s/keystorepwd=.*/keystorepwd=$(echo ${_admin_pwd} | sed -e 's/[\/&]/\\&/g')/g" ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml.variables
 
    echo_info "Install ${PRODUCT_NAME}" 
    java -jar ${INSTALLER} ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml -variablefile ${FILES_DIR}/install-${PRODUCT_SCRIPTNAME}.xml.variables
@@ -183,7 +205,7 @@ function start_service_and_wait {
 function parse_options() {
    local _configured=0
    
-   while getopts "i:b:u:d:" opt "$@"; do
+   while getopts "i:b:u:U:d:p:" opt "$@"; do
      case $opt in
        i)
          _GLOBAL_INSTANCE=$OPTARG
@@ -192,11 +214,17 @@ function parse_options() {
        b)
          _GLOBAL_BIND=$OPTARG
          ;;
-       u)
+       U)
          _GLOBAL_USER=$OPTARG
+         ;;
+       u)
+         _GLOBAL_ADMIN_USER=$OPTARG
          ;;
        d)
          _GLOBAL_DIR=$OPTARG
+         ;;
+       p)
+         _GLOBAL_ADMIN_PWD=$OPTARG
          ;;
        ?)
          usage
@@ -223,13 +251,27 @@ function parse_options() {
       then   
          _GLOBAL_DIR=$_DEFAULT_DIR
       fi
+      if [[ "$_GLOBAL_ADMIN_USER" == "" ]]
+      then   
+         _GLOBAL_ADMIN_USER=$DEFAULT_ADMIN_USER
+      fi      
+      if [[ "$_GLOBAL_ADMIN_PWD" == "" ]]
+      then   
+         _GLOBAL_ADMIN_PWD=$DEFAULT_ADMIN_PWD
+      fi      
       echo "Configuration ready"   
       echo "Environment: ${_GLOBAL_INSTANCE}"
       echo "Bind address: ${_GLOBAL_BIND}"
       echo "Install user: ${_GLOBAL_USER}"
+      echo "Admin user: ${_GLOBAL_ADMIN_USER}"
+      echo "Admin password: ${_GLOBAL_ADMIN_PWD}"
       echo "Install dir: ${_GLOBAL_DIR}"
    fi   
 }
+
+
+# If this script is not run with sudo or su fail
+fail_if_not_root
 
 parse_options $*
 check_pre_req

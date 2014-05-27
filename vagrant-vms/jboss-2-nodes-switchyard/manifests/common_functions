@@ -30,6 +30,10 @@ echo_nook() {
   return 0
 }
 
+exit_error() {
+   echo_nook "$1"
+   exit 255
+}
 
 function fail_if_not_root {
    if [ "$UID" -ne 0 ]
@@ -47,6 +51,38 @@ function add_user {
    echo "$_user:$_user" | sudo chpasswd
 }
 
+function add_sudo_user {
+   local _user=$1
+   
+   echo "Creating user $_user"
+   adduser -m $_user
+   echo "$_user:$_user" | sudo chpasswd
+
+   # enabling sudo group without password required
+   echo "%${_user} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_user}
+   # enabling sudo over ssh
+   sed -i 's/.*requiretty$/#Defaults requiretty/' /etc/sudoers
+}
+
+# It will set machine hostname, and it will set hostname for localhost
+#
+# Arguments:
+#   $1: hostname
+function set_hostname {
+   local _hostname=$1
+   
+   echo "Changing hostname in /etc/sysconfig/network"
+   sed -i "s/HOSTNAME=.*/HOSTNAME=${_hostname}/g" /etc/sysconfig/network
+   
+   echo "Adding $_hostname to /etc/hosts"
+   sed -i "s/localhost/${_hostname} localhost/" /etc/hosts
+   
+   echo "Restarting network to apply changes"
+   /etc/init.d/network restart
+   echo "Network restarted"
+   echo "New hostname: $(hostname)"
+} 
+
 function add_hostname {
    local _hostname=$1
    local _ip=$2
@@ -58,7 +94,13 @@ function add_hostname {
       echo "$_ip    $_hostname" >> /etc/hosts
       echo_ok "IP added"
    else
-      echo_info "IP already in /etc/hosts ($_RET)"
+      # Can be set for this ip, or for other, in which case, append hostname
+      sed -i "/^${_ip}/ s/${_hostname}//" /etc/hosts
+      sed -i "/^${_ip}/ s/$/ ${_hostname}/" /etc/hosts
+      _RET=$(cat /etc/hosts | grep "$_ip")
+      echo_info "IP already in /etc/hosts ($_RET). Added hostname alias."
    fi   
 } 
+
+ascii2hex(){ a="$@";s=0000000;printf "$a" | hexdump | grep "^$s"| sed s/' '//g| sed s/^$s//;}
 

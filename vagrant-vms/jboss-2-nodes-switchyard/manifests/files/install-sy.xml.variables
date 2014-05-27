@@ -1,4 +1,11 @@
-fsw.password=admin123!
-rtgov.password=admin123!
-saml.storepass=admin123!
-vault.keystorepwd=admin123!
+#adminpassword=Pass123!
+fsw.password=Pass123!
+rtgov.password=Pass123!
+saml.storepass=Pass123!
+vault.keystorepwd=Pass123!
+#db.url="jdbc:h2:file:${jboss.server.data.dir}/h2/fsw;mvcc=true"
+#db.user=fsw
+#db.password=Pass123!
+db.url=jdbc:oracle:thin:@dbhcora01-vip.ete.ka.sw.ericsson.se:1531/SMACCC
+db.user=smapp
+db.password=Pass123!

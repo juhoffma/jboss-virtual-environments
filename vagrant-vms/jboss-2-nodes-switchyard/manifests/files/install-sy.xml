@@ -19,7 +19,7 @@
 </com.izforge.izpack.panels.TreePacksPanel>
 <com.izforge.izpack.panels.UserInputPanel id="CreateUserPanel">
 <userInput>
-<entry key="adminPassword" value="d041a4bcc575ab17cf6039a206f72af8"/>
+<entry key="adminPassword" value="827648af42eb3a53b3554f95ac184461"/>
 <entry key="adminUser" value="admin"/>
 </userInput>
 </com.izforge.izpack.panels.UserInputPanel>
@@ -70,9 +70,9 @@
 <com.redhat.installer.panels.JBossDatasourceConfigPanel id="Datasource Configuration Panel"/>
 <com.izforge.izpack.panels.UserInputPanel id="DBDefaultConfiguration">
 <userInput>
-<entry key="db.url" value="jdbc:h2:file:${jboss.server.data.dir}/h2/fsw;mvcc=true"/>
-<entry key="db.user" value="fsw"/>
-<entry key="db.password" value="fsw"/>
+<entry autoPrompt="true" key="db.url"/>
+<entry autoPrompt="true" key="db.user"/>
+<entry autoPrompt="true" key="db.password"/>
 </userInput>
 </com.izforge.izpack.panels.UserInputPanel>
 <com.izforge.izpack.panels.SummaryPanel id="SummaryPanel"/>
