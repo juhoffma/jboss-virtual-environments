@@ -23,7 +23,7 @@ function install_additional_packages {
 function usage {
    # TODO: Explain how it works
 	echo "Usage: "
-	echo "       $0 [-H hostname] [-u user] [-s sudouser] [-h hostname:ip] [-j jdk-tar-filename] [-l limits] [-d install_dir] [-?]"
+	echo "       $0 [-H hostname] [-U user] [-s sudouser] [-h hostname:ip] [-j jdk-tar-filename] [-l limits] [-d install_dir] [-?]"
 	echo ""
 	echo ""
 	exit 250
@@ -67,28 +67,67 @@ function install_Oracle_JDK7 {
       echo 'export JAVA_HOME=/opt/data/java' > /etc/profile.d/java.sh
       echo 'export PATH=$JAVA_HOME/bin:$PATH' >> /etc/profile.d/java.sh
       echo_info "Java profile created at /etc/profile.d/java.sh"
+      # TODO: fix /etc/java/java.conf
+      ## java ##
+      /usr/sbin/alternatives --install /usr/bin/java java $_GLOBAL_DIR/java/jre/bin/java 200000
+      /usr/sbin/alternatives --install /usr/bin/javaws javaws $_GLOBAL_DIR/java/jre/bin/javaws 200000
+      #/usr/sbin/alternatives --install /usr/lib64/mozilla/plugins/libjavaplugin.so libjavaplugin.so.x86_64 $_GLOBAL_DIR/java/jre/lib/amd64/libnpjp2.so 200000
+      /usr/sbin/alternatives --install /usr/bin/javac javac $_GLOBAL_DIR/java/bin/javac 200000
+      /usr/sbin/alternatives --install /usr/bin/jar jar $_GLOBAL_DIR/java/bin/jar 200000
       # Source the file to have java
       . /etc/profile.d/java.sh
    fi   
 }
 
+#
+# 
+# Arguments:
+#   $1: domain (*,jboss,username,group)
+#   $2: type (soft,hard)
+#   $3: item (proc,nofile,...)
+#   $4: new_value
+function setup_ulimit_for {
+   local _domain=$1
+   local _type=$2
+   local _item=$3
+   local _value=$4
+   
+   _find_cmd=$(cat /etc/security/limits.conf | grep "$_domain" | grep "$_type" | grep "$_item")
+   
+   if [[ "" == $_find_cmd ]]  
+   then
+      echo "$_domain                    $_type       $_item           $_value" >> /etc/security/limits.conf
+      echo "Adding"
+   else
+      local _patterned_domain=`echo "$_domain" | sed 's:[]\[\^\$\.\*\/]:\\\\&:g'`
+      sed -i -r "s/^(.*)($_patterned_domain[ ]+$_type[ ]+$_item[ ]+)([0-9]*)$/\2$_value/g" /etc/security/limits.conf
+      echo "Modifying"
+   fi   
+   echo "ulimit set for $_domain $_type $_item with value $_value"
+}
+
+#
+#
+# Arguments:
+#   $1: limit value
 function setup_ulimits {
-# setup limits.conf
-# Linux distributions have a maximum number of files that a process can have open at one time. If this maximum number of files is set too low, JBoss Developer Studio will not start. 
-# You must open the /etc/security/limits.conf file and ensure that the soft nofile and hard nofile variables have values of 9216 at a minimum.
-# If the variables have smaller values, the values must be increased to 9216. If the variables are not specified, the following lines must be added to the file:
-# * soft nofile 9216
-# * hard nofile 9216
-echo "NO OP"
+   local _limit=$1
+   
+   echo "Setting ulimits to $_limit"
+
+   setup_ulimit_for "*" "soft" "nproc" "$_limit"
+   setup_ulimit_for "*" "hard" "nproc" "$_limit"
+   setup_ulimit_for "*" "soft" "nofile" "$_limit"
+   setup_ulimit_for "*" "hard" "nofile" "$_limit"
 }
 
 #
 # Parses command line arguments for script and check required params
 #
 function parse_options() {
-   while getopts "u:s:h:H:j:d:?" opt "$@"; do
+   while getopts "U:s:h:H:j:d:l:?" opt "$@"; do
      case $opt in
-       u)
+       U)
          add_user $OPTARG
          ;;
        s)
