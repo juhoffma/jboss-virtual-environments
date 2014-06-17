@@ -32,8 +32,8 @@ NOTE:
 Copy required binaries to manifest/files folder.
 
 Required binaries can be:
-FSW 6.0.0: jboss-fsw-installer-6.0.0.GA-redhat-4.jar
-Oracle JDK 7u55: jdk-7u55-linux-x64.tar.gz
+* FSW 6.0.0: jboss-fsw-installer-6.0.0.GA-redhat-4.jar
+* Oracle JDK 7u55: jdk-7u55-linux-x64.tar.gz
 
 [vagrant]:http://www.vagrantup.com
 [JBoss]:http://www.jboss.org/products
