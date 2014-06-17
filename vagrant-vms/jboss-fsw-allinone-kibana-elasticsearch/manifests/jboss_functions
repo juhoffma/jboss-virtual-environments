@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+function install_cli_scripts {
+   local _instance_name=$1
+   local _JBOSS_HOME=$1
+   
+   # TODO: Check that instance name exists, and thus the scripts
+
+   echo "Starting JBoss EAP in 'admin-only' mode."
+   /etc/init.d/${_instance_name} admin
+
+   local _jboss_home=$(/etc/init.d/${_instance_name} home)
+   echo "Using JBOSS_HOME=$_jboss_home"
+   
+   # Now that the system is running, we can deploy Jenkins.
+   echo "Deploying Jenkins."
+#   $_jboss_home/bin/jboss-cli.sh -c --file="deployJenkins.cli"
+
+   # And we can shutdown the system using the CLI.
+   echo "Shutting down JBoss EAP."
+   /etc/init.d/${_instance_name} stop
+}
+
+#
+# Start the server
+#
+# Arguments:
+#   $1: instance_name
+#   $2: install_dir
+function start_service_and_wait {
+   local _instance_name=$1
+   local _install_dir=$2
+
+   if [ -e /usr/sbin/service ]
+   then
+      service ${_instance_name} start
+   else
+      /etc/init.d/${_instance_name} start
+   fi
+   
+   #
+   # Wait until the server is started
+   #
+#   sleep 5
+#   timeout 30 grep -q 'JBAS015874:' <(tail -f ${_install_dir}/${_instance_name}/standalone/log/server.log)
+#   wait_for_startup 30 ${_install_dir}/${_instance_name}/standalone/log/server.log
+}
+
+
+# Waits until the server is started
+# 
+# Arguments:
+#   $1: timeout
+#   $2: jboss_console_log
+function wait_for_startup {
+  local _timeout=$1
+  local _log_file=$2
+  local count=0
+
+  until [ $count -gt $_timeout ]
+  do
+    grep 'JBAS015874:' $_log_file > /dev/null 
+    if [ $? -eq 0 ] ; then
+      break
+    fi 
+    sleep 1
+    let count=$count+1;
+  done
+
+}
+
+
+# Creates encoded password for management realm
+#
+# Arguments:
+#   $1: Working dir
+#   $2: user
+#   $3: password
+function encrypt_admin_password { 
+   local _dir=$1
+   local _user=$2
+   local _password=$3
+   
+   MI_CLASSPATH="${_dir}/files/encrypt/jboss-client.jar:${_dir}/files/encrypt/jbosssx-3.0.0.Final.jar:${_dir}/files/encrypt/:"
+
+   echo "$(java -cp $MI_CLASSPATH EncryptPassword $_user $_password)"
+}

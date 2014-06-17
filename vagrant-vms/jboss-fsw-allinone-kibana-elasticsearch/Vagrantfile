@@ -1,0 +1,54 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.require_version ">=1.6.2"
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+#  config.vm.box_url = "NOT_UPLOADED_ANYWHERE"
+
+  config.vm.box = "jmorales/centos65-jboss"
+  config.vm.network :forwarded_port, :guest=> 9990, :host=> 9990
+  config.vm.network :forwarded_port, :guest=> 9999, :host=> 9999
+  config.vm.network :forwarded_port, :guest=> 8080, :host=> 8080
+  config.vm.network :private_network, :ip=> "10.11.1.21"  
+  # config.vm.network :public_network
+  config.ssh.username = "jboss"
+  config.ssh.forward_agent = true
+  config.ssh.forward_x11 = true
+ 
+  config.vm.provider :virtualbox do |vb|
+     # vb.gui = true
+     vb.customize ["modifyvm", :id, "--name", "jboss-fsw-allinone-kibana-elasticsearch", "--memory", "4096"]
+  end
+
+  #
+  # Right now installs:
+  #   hostnames
+  #   users and groups
+  #   additional packages
+  #   copy files to /tmp
+  #
+  config.vm.provision :shell do |shell|
+         shell.inline = "/vagrant/manifests/setup-pre_req.sh $*"
+         shell.args = [#"-s", "jboss:jboss",
+                       "-H", "fsw",
+                       "-j", "jdk-7u55-linux-x64.tar.gz",
+                       "-d", "/opt",
+                       "-l", "9216"]
+  end
+
+  config.vm.provision :shell do |shell|
+     shell.path = "manifests/setup-kibana-elasticsearch.sh"
+  end
+
+  config.vm.provision :shell do |shell|
+     # shell.path = "manifests/setup-fsw.sh"
+     shell.inline = "/vagrant/manifests/setup-switchyard.sh $*"
+     shell.args = ["-i", "fsw", "-P", "standalone.xml", "-b", "0.0.0.0", "-m", "0.0.0.0", "-U", "jboss:jboss", "-u", "admin", "-p", "admin123!", "-d", "/opt"]
+  end
+
+
+end

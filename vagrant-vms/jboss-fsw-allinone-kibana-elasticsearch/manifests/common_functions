@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+
+SETCOLOR_SUCCESS="echo -en \\033[1;32m"
+SETCOLOR_INFO="echo -en \\033[1;36m"
+SETCOLOR_FAILURE="echo -en \\033[1;31m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+echo_ok() {
+  $SETCOLOR_SUCCESS
+  echo -n $1
+  $SETCOLOR_NORMAL
+  echo ""
+  return 0
+}
+
+echo_info() {
+  $SETCOLOR_INFO
+  echo -n $1
+  $SETCOLOR_NORMAL
+  echo ""
+  return 0
+}
+
+echo_nook() {
+  $SETCOLOR_FAILURE
+  echo -n $1
+  $SETCOLOR_NORMAL
+  echo ""
+  return 0
+}
+
+exit_error() {
+   echo_nook "$1"
+   exit 255
+}
+
+function fail_if_not_root {
+   if [ "$UID" -ne 0 ]
+   then
+	   echo_nook "To run this script you need root permissions (either root or sudo)"
+	   exit
+   fi 
+}
+
+function add_user {
+   local _user=$1
+   local _group=$2
+   
+   echo "Creating group $_group"
+   groupadd -f $_group
+   echo "Creating user $_user"
+   adduser -m -g $_group $_user
+   echo "$_user:$_user" | sudo chpasswd
+}
+
+function add_sudo_user {
+   local _user=$1
+   local _group=$2
+   
+   echo "Creating group $_group"
+   groupadd -f $_group
+   echo "Creating user $_user"
+   adduser -m -g $_group $_user
+   echo "$_user:$_user" | sudo chpasswd
+
+   # enabling sudo group without password required
+   echo "%${_group} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${_group}
+   # enabling sudo over ssh
+   sed -i 's/.*requiretty$/#Defaults requiretty/' /etc/sudoers
+}
+
+function add_group {
+   local _group=$1
+   
+   echo "Creating group $_group"
+   groupadd -f $_group
+}
+
+# It will set machine hostname, and it will set hostname for localhost
+#
+# Arguments:
+#   $1: hostname
+function set_hostname {
+   local _hostname=$1
+   
+   echo "Changing hostname in /etc/sysconfig/network"
+   sed -i "s/HOSTNAME=.*/HOSTNAME=${_hostname}/g" /etc/sysconfig/network
+#   hostname ${_hostname}
+   
+#   echo "Adding $_hostname to /etc/hosts"
+#   sed -i "s/localhost/${_hostname} localhost/" /etc/hosts
+   
+   echo "Restarting network to apply changes"
+   /etc/init.d/network restart
+   echo "Network restarted"
+   echo "New hostname: $(hostname)"
+} 
+
+function add_hostname {
+   local _hostname=$1
+   local _ip=$2
+   
+   echo "Adding $_hostname($_ip) to /etc/hosts"
+   _RET=$(cat /etc/hosts | grep "$_ip")
+   if [[ "$_RET" == "" ]]
+   then   
+      echo "$_ip    $_hostname" >> /etc/hosts
+      echo_ok "IP added"
+   else
+      # Can be set for this ip, or for other, in which case, append hostname
+      sed -i "/^${_ip}/ s/${_hostname}//" /etc/hosts
+      sed -i "/^${_ip}/ s/$/ ${_hostname}/" /etc/hosts
+      _RET=$(cat /etc/hosts | grep "$_ip")
+      echo_info "IP already in /etc/hosts ($_RET). Added hostname alias."
+   fi   
+} 
+
+ascii2hex(){ a="$@";s=0000000;printf "$a" | hexdump | grep "^$s"| sed s/' '//g| sed s/^$s//;}
+
