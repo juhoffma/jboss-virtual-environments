@@ -1,0 +1,45 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.require_version ">=1.6.2"
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+   config.vm.box = "jmorales/centos65-jboss"
+   config.ssh.username = "jboss"
+   config.ssh.forward_agent = true
+   config.ssh.forward_x11 = true
+
+   config.vm.define "sy1", primary: true do |node1|
+      node1.vm.network :private_network, ip: "10.15.2.10" #, virtualbox__intnet: "mynetwork" # SERVICE
+      #node1.vm.network :private_network, ip: "10.0.2.21" #, virtualbox__intnet: "management"  # MGMT
+      #node1.vm.network :private_network, ip: "10.0.1.21" , virtualbox__intnet: "internalnetwork" # REPLICATION
+      # Public network should be configured to be able to access YUM repos to install things
+      #  node1.vm.network :public_network
+      
+      node1.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "jboss-fuse-6_1", "--memory", "4096"]
+      end
+   
+      node1.vm.provision :shell do |shell|
+         shell.inline = "/vagrant/manifests/setup-pre_req.sh $*"
+         shell.args = [#"-s", "jboss:jboss",
+                       "-H", "fuse1",
+                       "-h", "fuse1:10.15.2.10", 
+                       "-h", "fuse1-repl:10.0.1.21",
+                       "-h", "fuse1-mgmt:10.0.2.21",
+                       "-j", "jdk-7u55-linux-x64.tar.gz",
+                       "-d", "/opt",
+                       "-l", "9216"]
+      end
+
+      node1.vm.provision :shell do |shell|
+         shell.inline = "/vagrant/manifests/setup-fuse.sh $*"
+         shell.args = ["-i", "fuse", "-U", "jboss:jboss", "-u", "admin", "-p", "admin123!", "-d", "/opt"]
+      end
+
+   end
+end

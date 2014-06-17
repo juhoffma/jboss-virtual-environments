@@ -86,9 +86,10 @@ function set_hostname {
    
    echo "Changing hostname in /etc/sysconfig/network"
    sed -i "s/HOSTNAME=.*/HOSTNAME=${_hostname}/g" /etc/sysconfig/network
+   hostname ${_hostname}
    
-   echo "Adding $_hostname to /etc/hosts"
-   sed -i "s/localhost/${_hostname} localhost/" /etc/hosts
+#   echo "Adding $_hostname to /etc/hosts"
+#   sed -i "s/localhost/${_hostname} localhost/" /etc/hosts
    
    echo "Restarting network to apply changes"
    /etc/init.d/network restart

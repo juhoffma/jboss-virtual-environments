@@ -64,7 +64,7 @@ function install_Oracle_JDK7 {
       #[ $? -ne 0 ] && exit_error "Java installation error"
 
       echo_info "Link for $_GLOBAL_DIR/$_linkname created at $_GLOBAL_DIR/java"  
-      echo 'export JAVA_HOME=/opt/data/java' > /etc/profile.d/java.sh
+      echo "export JAVA_HOME=${_GLOBAL_DIR}/java" > /etc/profile.d/java.sh
       echo 'export PATH=$JAVA_HOME/bin:$PATH' >> /etc/profile.d/java.sh
       echo_info "Java profile created at /etc/profile.d/java.sh"
       # TODO: fix /etc/java/java.conf
