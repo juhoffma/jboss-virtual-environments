@@ -9,8 +9,8 @@ docker rm -f fsw_installers
 
 # Build the appropiate images
 echo "Creating the standalone image"
-docker build --rm -t jmorales_fsw/standalone:6.0 ./standalone/
+docker build --rm -t jmorales_fsw/fsw-standalone:6.0 ./standalone/
 echo "Creating the standalone-ha image"
-docker build --rm -t jmorales_fsw/standalone-ha:6.0 ./standalone-ha/
+docker build --rm -t jmorales_fsw/fsw-standalone-ha:6.0 ./standalone-ha/
 echo "Creating the standalone-full-ha image"
-docker build --rm -t jmorales_fsw/standalone-full-ha:6.0 ./standalone-full-ha/
+docker build --rm -t jmorales_fsw/fsw-standalone-full-ha:6.0 ./standalone-full-ha/
