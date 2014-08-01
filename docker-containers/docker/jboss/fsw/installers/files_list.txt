@@ -1,0 +1,7 @@
+total 402464
+drwxrwxr-x  2 jmorales jmorales      4096 Aug  1 17:58 dtgov
+drwxrwxr-x  2 jmorales jmorales      4096 Aug  1 17:59 fsw
+-rw-rw-r--. 1 jmorales jmorales 412095194 Jul  7 18:29 jboss-fsw-installer-6.0.0.GA-redhat-4.jar
+drwxrwxr-x  3 jmorales jmorales      4096 Aug  1 17:43 patchsets
+drwxrwxr-x  2 jmorales jmorales      4096 Aug  1 18:00 rtgov
+drwxrwxr-x  2 jmorales jmorales      4096 Aug  1 18:00 sy
