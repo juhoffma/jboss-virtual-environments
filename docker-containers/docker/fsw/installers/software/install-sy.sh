@@ -3,11 +3,18 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 java -jar ${DIR}/jboss-fsw-installer-6.0.0.GA-redhat-4.jar ${DIR}/install-sy.xml -variablefile ${DIR}/install-sy.xml.variables
 PATCH="BZ-1085860"
-unzip -o ${DIR}/${PATCH}/fsw-6.0_1_2014-base.zip -d /home/jboss
-# unzip -o ${DIR}/${PATCH}/fsw-6.0_1_2014-dtgov.zip -d /home/jboss
-# unzip -o ${DIR}/${PATCH}/fsw-6.0_1_2014-rtgov-s.zip -d /home/jboss
-# unzip -o ${DIR}/${PATCH}/fsw-6.0_1_2014-sramp.zip -d /home/jboss
-unzip -o ${DIR}/${PATCH}/fsw-6.0_1_2014-switchyard.zip -d /home/jboss
+ROLLUP="6.0_2_2014"
+unzip -o ${DIR}/${PATCH}/fsw-${ROLLUP}-base.zip -d /home/jboss
+# unzip -o ${DIR}/${PATCH}/fsw-${ROLLUP}-dtgov.zip -d /home/jboss
+# unzip -o ${DIR}/${PATCH}/fsw-${ROLLUP}-rtgov-s.zip -d /home/jboss
+# unzip -o ${DIR}/${PATCH}/fsw-${ROLLUP}-sramp.zip -d /home/jboss
+unzip -o ${DIR}/${PATCH}/fsw-${ROLLUP}-switchyard.zip -d /home/jboss
+
+#
+# Enable debug
+#
+echo 'JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=n"' >> /home/jboss/jboss-eap-6.1/bin/standalone.conf
+
 
 ###
 # Customize configuration for Switchyard
