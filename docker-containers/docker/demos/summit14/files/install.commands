@@ -1,0 +1,2 @@
+jms-queue add --queue-address=LoanIntake --entries=LoanIntake
+data-source add --name=ApplicationDS --driver-name=h2 --connection-url=jdbc:h2:file:${jboss.server.data.dir}/h2/customer;mvcc=true --jndi-name=java:jboss/datasources/CustomerDS --user-name=sa  --password=sa

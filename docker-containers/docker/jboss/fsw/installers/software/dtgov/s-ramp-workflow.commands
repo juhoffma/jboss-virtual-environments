@@ -10,7 +10,7 @@
 # s-ramp:updateMetaData
 # quit
 connect http://localhost:8080/s-ramp-server admin admin123!
-upload /software/dtgov-workflows-1.0.1.Final-redhat-8.jar KieJarArchive
+upload /software/dtgov/dtgov-workflows-1.0.1.Final-redhat-8.jar KieJarArchive
 property set maven.artifactId dtgov-workflows
 property set maven.groupId org.overlord.dtgov
 #property set maven.hash.md5 7546f58171df5415c61d94531d962b91
