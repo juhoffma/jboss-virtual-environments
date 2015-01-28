@@ -1,0 +1,7 @@
+fsw.password=Pass123!
+rtgov.password=Pass123!
+saml.storepass=Pass123!
+vault.keystorepwd=Pass123!
+db.url=jdbc:h2:file:${jboss.server.data.dir}/h2/fsw;mvcc=true
+db.user=fsw
+db.password=Pass123!

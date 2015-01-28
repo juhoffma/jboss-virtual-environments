@@ -1,0 +1,3 @@
+        <interface name="replication">
+            <inet-address value="jbscsma01-repl"/>
+        </interface>

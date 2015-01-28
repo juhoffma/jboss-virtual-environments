@@ -1,0 +1,59 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.require_version ">=1.6.2"
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+#
+# This setup creates SwitchYard boxes with 3 interfaces each:
+#    - svc: Where the Switchyard port 8080 will be listening
+#    - mgmt: Where the JBossAS mmgmt console (9990,9999) will be listening
+#    - repl: Internal network for communicating with the cluster
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+   config.vm.box = "jmorales/centos65-jboss"
+#   config.vm.box = "centos65-jboss"
+   config.ssh.username = "jboss"
+   config.ssh.forward_agent = true
+   config.ssh.forward_x11 = true
+
+   config.vm.define "fsw01", primary: true do |node1|
+      node1.vm.network :private_network, ip: "10.1.10.11"
+      node1.vm.network :private_network, ip: "10.0.2.11" #,virtualbox__intnet: "management"
+      node1.vm.network :private_network, ip: "10.0.1.11" ,virtualbox__intnet: "internalnetwork"
+      # Public network should be configured to be able to access YUM repos to install things
+      #  node1.vm.network :public_network
+      
+      node1.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "fsw01", "--memory", "4096"]
+      end
+
+      node1.vm.provision :shell do |shell|
+         shell.inline = "/vagrant/manifests/setup.sh $*"
+         shell.args = ["fsw01"]
+      end
+
+   end   
+
+   config.vm.define "fsw02" do |node2|
+      node2.vm.network :private_network, ip: "10.1.10.12"
+      node2.vm.network :private_network, ip: "10.0.2.12" #,virtualbox__intnet: "management"
+      node2.vm.network :private_network, ip: "10.0.1.12" ,virtualbox__intnet: "internalnetwork"
+      # Public network should be configured to be able to access YUM repos to install things
+      #  node2.vm.network :public_network
+      
+      node2.vm.provider :virtualbox do |vb|
+         # vb.gui = true
+         vb.customize ["modifyvm", :id, "--name", "fsw02", "--memory", "4096"]
+      end
+
+      node2.vm.provision :shell do |shell|
+         shell.inline = "/vagrant/manifests/setup.sh $*"
+         shell.args = ["fsw02"]
+      end
+
+   end  
+end

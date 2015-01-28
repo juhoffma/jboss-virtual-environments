@@ -1,0 +1,9 @@
+manifests/installers/fsw/*.zip
+manifests/installers/fsw/*.jar
+manifests/installers/fsw/*.tar.gz
+manifests/installers/amq/*.zip
+manifests/installers/amq/*.jar
+manifests/installers/amq/*.tar.gz
+manifests/installers/jdk/*.jar
+manifests/installers/jdk/*.zip
+manifests/installers/jdk/*.tar.gz

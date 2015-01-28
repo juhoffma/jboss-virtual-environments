@@ -1,0 +1,31 @@
+        <subsystem xmlns="urn:jboss:domain:resource-adapters:1.1">
+            <resource-adapters>
+                <resource-adapter id="org.apache.activemq.ra">
+                    <archive>
+                        activemq-rar.rar
+                    </archive>
+                    <transaction-support>LocalTransaction</transaction-support>
+                    <config-property name="Password">
+                        #AMQ_PASSWD# 
+                    </config-property>
+                    <config-property name="UserName">
+                        #AMQ_USER#
+                    </config-property>
+                    <config-property name="ServerUrl">
+                        failover:(tcp://localhost:61616,tcp://#OTHER#:61617)?jms.rmIdFromConnectionId=true&amp;jms.prefetchPolicy.all=50
+                    </config-property>
+                    <connection-definitions>
+                        <connection-definition class-name="org.apache.activemq.ra.ActiveMQManagedConnectionFactory" jndi-name="java:/AMQConnectionFactory" enabled="true" use-java-context="true" pool-name="ActiveMQConnectionFactoryPool" use-ccm="true"/>
+                    </connection-definitions>
+                    <!--
+                    <admin-objects>
+                        <admin-object class-name="org.apache.activemq.command.ActiveMQQueue" jndi-name="queue.big" enabled="true" use-java-context="true" pool-name="queue.big">
+                            <config-property name="PhysicalName">
+                                queue.big
+                            </config-property>
+                        </admin-object>
+                    </admin-objects>
+                -->
+                </resource-adapter>
+            </resource-adapters>
+        </subsystem>

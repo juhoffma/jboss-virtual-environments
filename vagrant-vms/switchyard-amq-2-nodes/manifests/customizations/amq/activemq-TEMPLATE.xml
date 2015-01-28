@@ -1,0 +1,90 @@
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:amq="http://activemq.apache.org/schema/core"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <!-- Allows us to use system properties and fabric as variables in this configuration file -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties">
+            <bean class="org.fusesource.mq.fabric.ConfigurationProperties"/>
+        </property>      
+    </bean>
+
+    <broker xmlns="http://activemq.apache.org/schema/core"
+            brokerName="${broker-name}"
+            dataDirectory="${data}"
+            start="false" restartAllowed="false">
+
+        <destinationPolicy>
+            <policyMap>
+              <policyEntries>
+                <policyEntry topic=">" producerFlowControl="true">
+                  <pendingMessageLimitStrategy>
+                    <constantPendingMessageLimitStrategy limit="1000"/>
+                  </pendingMessageLimitStrategy>
+                </policyEntry>
+                <!--
+                <policyEntry queue="queue.big.>" producerFlowControl="false" memoryLimit="512mb">
+                  <pendingQueuePolicy>
+                    <storeCursor />
+                  </pendingQueuePolicy>
+                </policyEntry>
+                <policyEntry queue="queue.small.>" producerFlowControl="false" memoryLimit="128mb">
+                  <pendingQueuePolicy>
+                    <storeCursor />
+                  </pendingQueuePolicy>
+                </policyEntry>
+                -->
+                <policyEntry queue=">" producerFlowControl="true" memoryLimit="32mb">
+                </policyEntry>
+              </policyEntries>
+            </policyMap>
+        </destinationPolicy>
+
+        <!-- Queue setup.  Queues can be created on the fly by any user with
+             admin rights, but it is not good to give every user admin rights.  -->
+        <destinations>
+            <!--
+            <queue physicalName="SMA_to" />
+            <queue physicalName="SMA_from" />
+            -->
+        </destinations>
+
+        <managementContext>
+            <managementContext createConnector="false"/>
+        </managementContext>
+
+        <persistenceAdapter>
+            <levelDB directory="#LEVELDB_PATH#"/>
+        </persistenceAdapter>
+
+        <plugins>
+            <jaasAuthenticationPlugin configuration="karaf" />
+        </plugins>
+
+        <systemUsage>
+            <systemUsage>
+                <memoryUsage>
+                    <memoryUsage limit="1536 mb"/>
+                </memoryUsage>
+                <storeUsage>
+                    <storeUsage limit="50 gb"/>
+                </storeUsage>
+                <tempUsage>
+                    <tempUsage limit="10 gb"/>
+                </tempUsage>
+            </systemUsage>
+        </systemUsage>
+        
+        <transportConnectors>
+            <transportConnector name="openwire" uri="tcp://0.0.0.0:#PORT#?maximumConnections=1000"/>
+        </transportConnectors>
+
+        <networkConnectors>
+            <networkConnector name="brokerBridge" userName="#USER#" password="#PASSWORD#" uri="#TRANSPORT_URI#"/>
+        </networkConnectors>
+    </broker>
+
+</beans>
