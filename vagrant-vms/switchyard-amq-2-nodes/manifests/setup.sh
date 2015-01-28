@@ -293,30 +293,29 @@ function install_amq {
    cp -f ${DIR}/customizations/amq/activemq-TEMPLATE.xml ${AMQ_INSTALL_PATH}/${_instance_name}/etc/activemq.xml
    # USER, PASSWORD, PORT, TRANSPORT_URI, LEVELDB_PATH
    local _amq_uri="none"
-   local _level_db_path="temp"
+   local _leveldb_path="temp"
    local _port=0 
    if [[ "${_role}" == "master" ]]
    then
       if [[ "${_this}" == "fsw01" ]]
       then
-         _level_db_path="/opt/amq/data/fsw01"
+         _leveldb_path="/opt/amq/data/fsw01"
          _amq_uri="masterslave:(tcp://fsw02-repl:61616,tcp://localhost:61617)"
       else
-         _level_db_path="/opt/amq/data/fsw02"
+         _leveldb_path="/opt/amq/data/fsw02"
          _amq_uri="masterslave:(tcp://fsw01-repl:61616,tcp://localhost:61617)"
       fi
-      _level_db_path=
-      _port=${AMQ_SLAVE_PORT}
+      _port=${AMQ_MASTER_PORT}
    else # SLAVE
       if [[ "${_this}" == "fsw01" ]]
       then
-         _level_db_path="/opt/amq/data/fsw02"
+         _leveldb_path="/opt/amq/data/fsw02"
          _amq_uri="masterslave:(tcp://localhost:61616,tcp://fsw02-repl:61617)"
       else
-         _level_db_path="/opt/amq/data/fsw01"
+         _leveldb_path="/opt/amq/data/fsw01"
          _amq_uri="masterslave:(tcp://localhost:61616,tcp://fsw01-repl:61617)"
       fi
-      _port=${AMQ_MASTER_PORT}
+      _port=${AMQ_SLAVE_PORT}
    fi
    echo "Updating ${AMQ_INSTALL_PATH}/${_instance_name}/etc/activemq.xml configuration"   
    sed -i -e "s/#PORT#/${_port}/g" ${AMQ_INSTALL_PATH}/${_instance_name}/etc/activemq.xml
@@ -324,7 +323,12 @@ function install_amq {
    sed -i -e "s/#PASSWORD#/$(echo ${AMQ_PASSWD} | sed -e 's/[\/&]/\\&/g')/g" ${AMQ_INSTALL_PATH}/${_instance_name}/etc/activemq.xml
    sed -i -e "s/#TRANSPORT_URI#/$(echo ${_amq_uri} | sed -e 's/[\/&]/\\&/g')/g" ${AMQ_INSTALL_PATH}/${_instance_name}/etc/activemq.xml
    # /opt/amq/data/fsw01
+   mkdir -p ${_leveldb_path}
+   chown -R ${OS_USER}:${OS_USER} ${_leveldb_path}
    sed -i -e "s/#LEVELDB_PATH#/$(echo ${_leveldb_path} | sed -e 's/[\/&]/\\&/g')/g" ${AMQ_INSTALL_PATH}/${_instance_name}/etc/activemq.xml
+
+   # hawtio port configuration
+   [[ "${_role}" == "slave" ]] && sed -i -e 's/8181/8182/g' ${AMQ_INSTALL_PATH}/${_instance_name}/etc/jetty.xml
 
    # After everything is done, fix owner
    echo_info "Setting permissions to ${AMQ_INSTALL_PATH}/${_instance_name} for user ${OS_USER}:${OS_USER}"
