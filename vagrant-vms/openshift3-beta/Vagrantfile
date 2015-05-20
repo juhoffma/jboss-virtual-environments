@@ -1,0 +1,110 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Instructions from:
+#    https://github.com/openshift/training/blob/master/beta-3-setup.md
+#
+# 192.168.133.2   ose3-master.example.com ose3-master                                                        
+# 192.168.133.3   ose3-node1.example.com ose3-node1                                                          
+# 192.168.133.4   ose3-node2.example.com ose3-node2
+# 192.168.133.100 ose3-registry.example.com ose3-registry
+Vagrant.configure(2) do |config|
+
+  # The number of minions to provision.
+  num_nodes = (ENV['NUM_NODES'] || 2).to_i
+
+  # IP configuration
+  master_ip = "192.168.133.2"
+  node_ip_base = "192.168.133."
+  node_ips = num_nodes.times.collect { |n| node_ip_base + "#{n+3}" }
+  node_ips_str = node_ips.join(",")
+
+  #
+  # Plugins configuration
+  #
+  # config.registration.skip = true
+  config.registration.auto_attach = false
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.ignore_private_ip = false
+  config.hostmanager.include_offline = true
+
+  #
+  # Box configuration
+  #
+  
+  # Prefer VirtualBox before libvirt. This defines the order, so later configuration is not defining the order
+  config.vm.provider "virtualbox"
+  config.vm.provider "libvirt"
+
+  config.vm.box_check_update = false
+  config.vm.box = "rhel-7.1"
+
+  #config.vm.synced_folder './', '/vagrant', type: 'rsync', disabled: true
+  config.vm.synced_folder './', '/vagrant', type: 'rsync'
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = true
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
+  end
+
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.memory = 2048
+    libvirt.cpus = 1
+  end
+
+  config.vm.define "ose3-registry" do |registry|
+     registry.vm.hostname = "ose3-registry"
+     registry.hostmanager.aliases = %W(ose3-registry.example.com )
+     registry.vm.network "private_network", ip: "192.168.133.100", libvirt__network_name: "openshift3-beta0", libvirt__dhcp_enabled: false
+
+     registry.vm.provision :shell, inline: "/vagrant/scripts/registry.sh $*"
+
+     registry.vm.provision "fix-hostmanager-bug", type: "shell", run: "always" do |s|
+       s.inline = <<-EOT
+        sudo restorecon /etc/hosts
+        sudo chown root:root /etc/hosts
+        EOT
+     end
+  end
+
+  config.vm.define "ose3-master" do |master|
+     master.vm.hostname = "ose3-master"
+     master.hostmanager.aliases = %W(ose3-master.example.com)
+     master.vm.network "private_network", ip: "192.168.133.2", libvirt__network_name: "openshift3-beta0", libvirt__dhcp_enabled: false
+
+     master.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-master"
+     master.vm.provision :shell, inline: "/vagrant/scripts/master.sh"
+     master.vm.provision :shell, inline: "/vagrant/scripts/docker-images.sh"
+
+     master.vm.provision "fix-hostmanager-bug", type: "shell", run: "always" do |s|
+       s.inline = <<-EOT
+        sudo restorecon /etc/hosts
+        sudo chown root:root /etc/hosts
+        EOT
+     end
+  end
+
+  # OpenShift nodes
+  num_nodes.times do |n|
+    config.vm.define "ose3-node#{n+1}" do |node|
+      node_index = n+1
+      node_ip = node_ips[n]
+
+      node.vm.hostname = "ose3-node#{node_index}"
+      node.hostmanager.aliases = %W(ose3-node#{node_index}.example.com)
+      node.vm.network "private_network", ip: "#{node_ip}", libvirt__network_name: "openshift3-beta0", libvirt__dhcp_enabled: false
+      node.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-node#{node_index}"
+      node.vm.provision :shell, inline: "/vagrant/scripts/node.sh"
+      node.vm.provision :shell, inline: "/vagrant/scripts/docker-images.sh"
+      node.vm.provision "fix-hostmanager-bug", type: "shell", run: "always" do |s|
+        s.inline = <<-EOT
+          sudo restorecon /etc/hosts
+          sudo chown root:root /etc/hosts
+          EOT
+      end
+    end
+  end  
+
+end
