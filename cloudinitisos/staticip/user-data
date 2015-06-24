@@ -1,0 +1,30 @@
+#cloud-config
+#vim:syntax=yaml
+network-interfaces: |
+  auto eth0
+  iface eth0 inet static
+  address 192.168.133.90
+  network 192.168.133.0
+  netmask 255.255.255.0
+  broadcast 192.168.133.255
+  gateway 192.168.133.1
+  dns-nameservers 8.8.8.8
+bootcmd:
+  - ifdown eth0
+  - ifup eth0
+hostname: mynode
+fqdn: mynode.example.com
+manage_etc_hosts: true
+debug: True
+ssh_pwauth: True
+disable_root: false
+chpasswd:
+  list: |
+    root:password
+    cloud-user:password
+  expire: false
+runcmd:
+  - sed -i'.orig' -e's/without-password/yes/' /etc/ssh/sshd_config
+  - service sshd restart
+
+
