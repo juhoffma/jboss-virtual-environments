@@ -92,6 +92,26 @@ docker_registry_images=( \
         openshift/ruby-20-centos7 \
 )
 
+redhat_registry_imagestream=( \
+        openshift3_beta/ruby-20-rhel7 \
+        openshift3_beta/nodejs-010-rhel7 \
+        openshift3_beta/perl-516-rhel7 \
+        openshift3_beta/python-33-rhel7 \
+        openshift3_beta/mysql-55-rhel7 \
+        openshift3_beta/postgresql-92-rhel7 \
+        openshift3_beta/mongodb-24-rhel7 \
+        jboss-webserver-3/tomcat7-openshift \
+        jboss-webserver-3/tomcat8-openshift \
+        jboss-eap-6/eap-openshift \
+)
+
+docker_registry_imagestream=( \
+        openshift/ruby-20-centos7 \
+        openshift/nodejs-010-centos7 \
+        openshift/perl-516-centos7 \
+        openshift/python-33-centos7 \
+        openshift/wildfly-8-centos \
+)
 
 for element in $(seq 0 $((${#redhat_registry_images[@]} - 1)))
 do
@@ -110,5 +130,27 @@ do
   docker pull ${docker_registry_images[$element]}
   docker tag -f  ${docker_registry_images[$element]} $REGISTRY/${docker_registry_images[$element]}
   docker push $REGISTRY/${docker_registry_images[$element]}
+  echo "  "
+done
+
+# Imagestreams
+for element in $(seq 0 $((${#redhat_registry_imagestream[@]} - 1)))
+do
+  echo "===" 
+  echo "Installing ${redhat_registry_imagestream[$element]} into local registry ($REGISTRY)"  
+  docker pull registry.access.redhat.com/${redhat_registry_imagestream[$element]}
+  docker tag -f  registry.access.redhat.com/${redhat_registry_imagestream[$element]} $REGISTRY/${redhat_registry_imagestream[$element]}
+  docker push $REGISTRY/${redhat_registry_imagestream[$element]}
+  echo "  "
+done
+
+# Imagestreams
+for element in $(seq 0 $((${#docker_registry_imagestream[@]} - 1)))
+do
+  echo "===" 
+  echo "Installing ${docker_registry_imagestream[$element]} into local registry ($REGISTRY)"  
+  docker pull ${docker_registry_imagestream[$element]}
+  docker tag -f  ${docker_registry_imagestream[$element]} $REGISTRY/${docker_registry_imagestream[$element]}
+  docker push $REGISTRY/${docker_registry_imagestream[$element]}
   echo "  "
 done
