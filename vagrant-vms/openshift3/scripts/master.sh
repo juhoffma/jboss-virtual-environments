@@ -11,7 +11,7 @@ yum -y --enablerepo=epel install ansible
 # Get the ansible installer and training material
 cd
 rm -rf openshift-ansible
-git clone https://github.com/openshift/openshift-ansible -b v3.0.0
+git clone https://github.com/openshift/openshift-ansible -b v3.0.0-4
 
 # Configure the hosts
 /bin/cp ${DIR}/hosts /etc/ansible/
@@ -22,7 +22,8 @@ ansible-playbook ~/openshift-ansible/playbooks/byo/config.yml
 # Clone the trainign repo
 cd
 rm -rf training
-git clone https://github.com/openshift/training
+# git clone https://github.com/openshift/training
+git clone https://github.com/thoraxe/training.git -b GA-work
 
 
 # Add users
@@ -31,6 +32,10 @@ useradd alice
 htpasswd -b /etc/openshift/openshift-passwd joe redhat
 htpasswd -b /etc/openshift/openshift-passwd alice redhat
 
+# Fix the labels for the nodes
+oc label node/ose3-master.example.com region=infra zone=default
+oc label node/ose3-node1.example.com region=primary zone=east
+oc label node/ose3-node2.example.com region=primary zone=west
 
 # Create a service account for the registry to run as
 echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"registry"}}' | oc create -f -
@@ -58,14 +63,16 @@ oadm router router --replicas=1 --selector='region=infra' --credentials='/etc/op
 # Databases
 # oc create -f /usr/share/openshift/examples/db-templates -n openshift
 # NOTE: Above installed during installation
-git clone https://github.com/jboss-openshift/application-templates.git -b  ose-v1.0.0 /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0
-oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/jboss-image-streams.json -n openshift
+
+# git clone https://github.com/jboss-openshift/application-templates.git -b  ose-v1.0.0 /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0
+# oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/jboss-image-streams.json -n openshift
 
 
 # Creating the templates
 # oc create -f /usr/share/openshift/examples/quickstart-templates -n openshift
 # NOTE: Above installed during installation
-oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/amq -n openshift
-oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/eap -n openshift
-oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/webserver -n openshift
-# oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/secrets
+
+# oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/amq -n openshift
+# oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/eap -n openshift
+# oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/webserver -n openshift
+## oc create -f /usr/share/openshift/examples/xPaaS-Final-OSE-v1.0.0/secrets

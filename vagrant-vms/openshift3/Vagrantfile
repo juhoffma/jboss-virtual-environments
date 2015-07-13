@@ -7,14 +7,19 @@
 # 192.168.133.2     ose3-master.example.com ose3-master                                                        
 # 192.168.133.3     ose3-node1.example.com ose3-node1                                                          
 # 192.168.133.4     ose3-node2.example.com ose3-node2
-# 192.168.133.100   ose3-helper.example.com ose3-helper                                                        
+#
+# Environment variables:
+#   ACCESS_USERNAME   Username for the access portal (to subscribe your box)
+#   ACCESS_PASSWORD   Password for the access portal (to subscribe your box)
+#   POOL_ID           PoolID with the appropriate OpenSHift v3 Subscriptions  (to subscribe your box)
+
+require 'vagrant-hostmanager'
+require 'vagrant-registration'
 
 Vagrant.configure(2) do |config|
 
   # The number of minions to provision.
   num_nodes = (ENV['NUM_NODES'] || 2).to_i
-  poolID = ENV['POOL_ID']
-
   # IP configuration
   master_ip = "192.168.133.2"
   node_ip_base = "192.168.133."
@@ -34,46 +39,36 @@ Vagrant.configure(2) do |config|
   config.hostmanager.ignore_private_ip = false
   config.hostmanager.include_offline = true
 
+
+  #
+  # Other configuration
+  #
+  poolID = ENV['POOL_ID']
+
+
   #
   # Box configuration
   #
-  
-  # Prefer VirtualBox before libvirt. This defines the order, so later configuration is not defining the order
-#  config.vm.provider "virtualbox"
-  config.vm.provider "libvirt"
-
   config.vm.box_check_update = false
   config.vm.box = "rhel-7.1"
-
-  #config.vm.synced_folder './', '/vagrant', type: 'rsync', disabled: true
   config.vm.synced_folder './', '/vagrant', type: 'rsync'
 
+  #
+  # virtualbox provider common settings
+  #
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
     vb.customize ["modifyvm", :id, "--memory", "2048"]
   end
 
+  #
+  # libvirt provider common settings
+  #
   config.vm.provider "libvirt" do |libvirt|
     libvirt.driver = "kvm"
     libvirt.memory = 2048
     libvirt.cpus = 1
     libvirt.storage :file, :size => '12G', :device => 'vdb'
-  end
-
-  config.vm.define "ose3-helper" do |helper|
-     helper.vm.hostname = "ose3-helper"
-     helper.hostmanager.aliases = %W(ose3-helper.example.com )
-     helper.vm.network "private_network", ip: "192.168.133.100", libvirt__network_name: "openshift3-beta0", libvirt__dhcp_enabled: false
-
-     helper.vm.provision "fix-hostmanager-bug", type: "shell", run: "always" do |s|
-       s.inline = <<-EOT
-        sudo restorecon /etc/hosts
-        sudo chown root:root /etc/hosts
-        EOT
-     end
-
-     helper.vm.provision :shell, inline: "/vagrant/scripts/helper.sh ose3-helper #{poolID}"
-
   end
 
   # OpenShift nodes
@@ -94,7 +89,7 @@ Vagrant.configure(2) do |config|
       end
 
       node.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-node#{node_index} 192.168.133.100 #{poolID}"
-#      node.vm.provision :shell, inline: "/vagrant/scripts/node.sh"
+      node.vm.provision :shell, inline: "/vagrant/scripts/node.sh ose3-node#{node_index}"
 #      node.vm.provision :shell, inline: "/vagrant/scripts/docker-images.sh"
     end
   end  
@@ -112,7 +107,7 @@ Vagrant.configure(2) do |config|
      end
 
      master.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-master 192.168.133.100 #{poolID}"
-#     master.vm.provision :shell, inline: "/vagrant/scripts/master.sh"
+     master.vm.provision :shell, inline: "/vagrant/scripts/master.sh"
 #     master.vm.provision :shell, inline: "/vagrant/scripts/docker-images.sh"
 
   end
