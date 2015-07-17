@@ -49,16 +49,16 @@ systemctl enable docker && sudo systemctl start docker
 
 # Configure networking
 echo "dns=none" >>  /etc/NetworkManager/NetworkManager.conf
-cp /etc/resolv.conf /etc/resolv.conf.ori
+cp /etc/resolv.conf /etc/resolv.conf.orig
 echo "#Custom resolv.conf made for Openshift" > /etc/resolv.conf
 echo "search example.com" >> /etc/resolv.conf
 echo "nameserver ${_DNSMASQ_SERVER_IP}" >> /etc/resolv.conf
-cat /etc/resolv.conf.ori >> /etc/resolv.conf
+cat /etc/resolv.conf.orig >> /etc/resolv.conf
 systemctl restart NetworkManager
 
-# Add aliases
-echo "alias tailfmaster='journalctl -f -u openshift-master' " >> ~/.bashrc
-echo "alias tailfnode='journalctl -f -u openshift-node' " >> ~/.bashrc
+# Add aliases and disable truncating log lines
+echo "alias tailfmaster='journalctl -f -u openshift-master' -l " >> ~/.bashrc
+echo "alias tailfnode='journalctl -f -u openshift-node' -l " >> ~/.bashrc
 
 # Add My docker function aliases
 curl https://raw.githubusercontent.com/jorgemoralespou/scripts/master/docker/bash_aliases_docker.txt -o ~/.docker_aliases
