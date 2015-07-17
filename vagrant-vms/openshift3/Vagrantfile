@@ -18,6 +18,15 @@ require 'vagrant-registration'
 
 Vagrant.configure(2) do |config|
 
+  # Enable the vagrant-env plugin
+  config.env.enable
+
+  unless ENV.has_key?('ACCESS_USERNAME') && ENV.has_key?('ACCESS_PASSWORD') && ENV.has_key?('POOL_ID')
+    puts "You have not defined all environment variables needed to bring up the Virtual Machines!"
+    puts "Please read the README thoroughly"
+    exit 1
+  end
+
   # The number of minions to provision.
   num_nodes = (ENV['NUM_NODES'] || 2).to_i
   # IP configuration
@@ -59,7 +68,7 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
     vb.cpus = 1
-    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.customize ["modifyvm", :id, "--memory", "1024"]
   end
 
   #
@@ -77,10 +86,12 @@ Vagrant.configure(2) do |config|
     config.vm.define "ose3-node#{n+1}" do |node|
       node_index = n+1
       node_ip = node_ips[n]
+      device = "/dev/vdb"
 
       # Specific Configuration Options for the VirtualBox Provider
       node.vm.provider "virtualbox" do |vb|
         disk_file = "./disks/docker-pool-disk-ose3-node#{node_index}.vdi"
+        device = "/dev/sdb"
         unless File.exist?(disk_file)
           # Create a 10 GB (10*1024) disk for docker images
           vb.customize ['createhd', '--filename', disk_file, '--size', 10 * 1024]
@@ -100,7 +111,7 @@ Vagrant.configure(2) do |config|
           EOT
       end
 
-      node.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-node#{node_index} 192.168.133.100 #{poolID}"
+      node.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-node#{node_index} 192.168.133.100 #{poolID} #{device}"
       node.vm.provision :shell, inline: "/vagrant/scripts/node.sh ose3-node#{node_index}"
 #      node.vm.provision :shell, inline: "/vagrant/scripts/docker-images.sh"
     end
@@ -110,9 +121,11 @@ Vagrant.configure(2) do |config|
      master.vm.hostname = "ose3-master"
      master.hostmanager.aliases = %W(ose3-master.example.com)
      master.vm.network "private_network", ip: "192.168.133.2", libvirt__network_name: "openshift3-beta0", libvirt__dhcp_enabled: false
+     device = "/dev/vdb"
 
      # Specific Configuration Options for the VirtualBox Provider
      master.vm.provider "virtualbox" do |vb|
+       device = "/dev/sdb"
        disk_file = "./disks/docker-pool-disk-ose3-master.vdi"
        unless File.exist?(disk_file)
          # Create a 10 GB (10*1024) disk for docker images
@@ -129,7 +142,7 @@ Vagrant.configure(2) do |config|
         EOT
      end
 
-     master.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-master 192.168.133.100 #{poolID}"
+     master.vm.provision :shell, inline: "/vagrant/scripts/all.sh ose3-master 192.168.133.100 #{poolID} #{device}"
      master.vm.provision :shell, inline: "/vagrant/scripts/master.sh"
 #     master.vm.provision :shell, inline: "/vagrant/scripts/docker-images.sh"
 
