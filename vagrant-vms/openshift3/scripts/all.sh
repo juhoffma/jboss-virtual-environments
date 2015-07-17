@@ -4,10 +4,12 @@
 #   $1: hostname
 #   $2: dnsmasq_server_ip
 #   $3: poolID
+#   $4: disk device
 #
 _HOSTNAME=$1
 _DNSMASQ_SERVER_IP=$2
 _POOLID=$3
+_DISK_DEVICE=$4
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -29,22 +31,42 @@ yum -y update
 # Setup hostnames
 hostnamectl --static set-hostname ${_HOSTNAME}.example.com
 
-# EXTEND STORAGE FOR DOCKER: http://unpoucode.blogspot.com.es/2015/06/docker-and-devicemappers-thinpool-in.html
-pvcreate /dev/vdb
-vgextend VolGroup00  /dev/vdb
-lvextend -l 100%FREE /dev/VolGroup00/docker-pool
-
 # Install docker
 yum -y install docker
+
+# Run docker related stuff
+# Docker provides a very small volume for the docker pool
+# The VM comes with a separate disk that is supposed to host all the docker images
+# the following commands prepare everything.
+
+# Stop docker
+systemctl stop docker > /dev/null 2>&1 || :
 
 # Set registry to use
 #sed -i -e "s/registry\.access\.redhat\.com/ose3-registry:5000/" /etc/sysconfig/docker
 #sed -i -e "s/^# BLOCK_REGISTRY=.*/BLOCK_REGISTRY='--block-registry registry\.access\.redhat\.com --block-registry docker\.io '/" /etc/sysconfig/docker
 sed -i -e "s/^# INSECURE_REGISTRY=.*/INSECURE_REGISTRY='--insecure-registry 0\.0\.0\.0\/0 '/" /etc/sysconfig/docker
 
-systemctl stop docker > /dev/null 2>&1 || :
-# usermod -a -G docker vagrant
+# Remove the default docker-pool
+lvremove -f VolGroup00/docker-pool
+
+# Remove any files and directories from the default installation
+rm -rf /var/lib/docker/*
+
+# Make docker use our dedicated disk for docker related stuff
+cat <<EOF > /etc/sysconfig/docker-storage-setup
+DEVS=${_DISK_DEVICE}
+VG=docker-vg
+SETUP_LVM_THIN_POOL=yes
+EOF
+
+# Run docker-storage-setup
+docker-storage-setup
+
+# Finally start docker
 systemctl enable docker && sudo systemctl start docker
+
+# usermod -a -G docker vagrant
 # chown root:docker /var/run/docker.sock
 
 # Configure networking
