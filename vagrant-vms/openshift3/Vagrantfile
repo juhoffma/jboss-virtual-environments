@@ -58,6 +58,7 @@ Vagrant.configure(2) do |config|
   #
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
+    vb.cpus = 1
     vb.customize ["modifyvm", :id, "--memory", "2048"]
   end
 
@@ -76,6 +77,17 @@ Vagrant.configure(2) do |config|
     config.vm.define "ose3-node#{n+1}" do |node|
       node_index = n+1
       node_ip = node_ips[n]
+
+      # Specific Configuration Options for the VirtualBox Provider
+      node.vm.provider "virtualbox" do |vb|
+        disk_file = "./disks/docker-pool-disk-ose3-node#{node_index}.vdi"
+        unless File.exist?(disk_file)
+          # Create a 10 GB (10*1024) disk for docker images
+          vb.customize ['createhd', '--filename', disk_file, '--size', 10 * 1024]
+        end
+        # Attach the disk to the VM
+        vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk_file]
+      end
 
       node.vm.hostname = "ose3-node#{node_index}"
       node.hostmanager.aliases = %W(ose3-node#{node_index}.example.com)
@@ -98,6 +110,17 @@ Vagrant.configure(2) do |config|
      master.vm.hostname = "ose3-master"
      master.hostmanager.aliases = %W(ose3-master.example.com)
      master.vm.network "private_network", ip: "192.168.133.2", libvirt__network_name: "openshift3-beta0", libvirt__dhcp_enabled: false
+
+     # Specific Configuration Options for the VirtualBox Provider
+     master.vm.provider "virtualbox" do |vb|
+       disk_file = "./disks/docker-pool-disk-ose3-master.vdi"
+       unless File.exist?(disk_file)
+         # Create a 10 GB (10*1024) disk for docker images
+         vb.customize ['createhd', '--filename', disk_file, '--size', 10 * 1024]
+       end
+       # Attach the disk to the VM
+       vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk_file]
+     end
 
      master.vm.provision "fix-hostmanager-bug", type: "shell", run: "always" do |s|
        s.inline = <<-EOT
